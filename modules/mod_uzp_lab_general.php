@@ -76,6 +76,7 @@ class Uzp extends DBase{
 
 
       if(OPTIONS_REQUESTED_MODULE == '') $this->homePage();
+      elseif(OPTIONS_REQUESTED_MODULE == 'step1') $this->receiveSamples();
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -119,6 +120,44 @@ class Uzp extends DBase{
 </div>
 <script>
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');//back link
+</script>
+<?php
+   }
+
+   /**
+    * Create a page for receiving samples
+    */
+   private function receiveSamples(){
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="receive_samples">
+   <h3 class="center" id="home_title">Log samples received from the field</h3>
+   <div class="scan">
+      <label style="float: left;">Format of the samples to receive: </label>&nbsp;&nbsp;<input type="text" name="sample_format" /> <br /><br />
+
+      <input type="text" name="sample" />
+      <div>
+         <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+      </div>
+   </div>
+   <div class="received"></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveReceivedSample).jqxButton({ width: '150'});
+
+   $(document).keypress(uzp.receiveSampleKeypress);
 </script>
 <?php
    }

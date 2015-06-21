@@ -52,5 +52,7 @@ body {
    font-size: 0.9em;
 }
 
+input[type=text]{ height: 30px; }
 #home_title{ font-size: bold; }
-.center{ text-align: center; clear: both;}
+.center{ text-align: center; clear: both; }
+#receive_samples .scan{ margin: 5px 20px; }
