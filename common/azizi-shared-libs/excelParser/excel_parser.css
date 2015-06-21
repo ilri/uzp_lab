@@ -1,0 +1,56 @@
+table.excel {
+   border-style:ridge;
+   border-width: 1px;
+   border-collapse:collapse;
+   font-family:sans-serif;
+   font-size:12px;
+}
+
+table.excel thead th, table.excel tbody th {
+   background:#CCCCCC;
+   border-style:ridge;
+   border-width: 1px;
+   text-align: center;
+   vertical-align:bottom;
+}
+
+table.excel tbody th {
+   text-align:center;
+   width:20px;
+}
+
+table.excel tbody td {
+   vertical-align:bottom;
+}
+
+table.excel tbody td {
+   padding: 0 3px;
+   border: 1px solid #EEEEEE;
+}
+
+.excel_hasErrors{
+   background-color: #F29898;
+}
+
+.excel_noErrors{
+   background-color: lime;
+   text-align: left;
+}
+
+.excel_errors{
+   background-color: #F29898;
+   max-height: 200px;
+   overflow: auto;
+   text-align: left;
+}
+
+.excel_otherMssgs{
+   background-color: #F2F3F5;
+   max-height: 200px;
+   overflow: auto;
+}
+
+.sheet_name{
+   font-size: 1.4em;
+   font-weight: bold;
+}

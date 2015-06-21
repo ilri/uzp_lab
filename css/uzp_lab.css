@@ -1,0 +1,56 @@
+root { display: block; }
+
+html{ overflow: -moz-scrollbars-vertical; }
+
+body {
+    font-family:Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: 76%;
+    color: #000000;
+    background-color:#f1f1f1;
+}
+
+-moz-any-link:focus { border: none; }
+
+#uzp_header{
+   padding:0px;
+   text-align: center;
+   margin: 5px;
+   height: 142px;
+   vertical-align: middle;
+   border-bottom:1px gray solid;
+   background-image: url("../images/uzp_header.jpg");
+}
+
+#home, #whoisme, #lower_panel{ width: 920px; }
+
+#uzp{
+   width: 920px;
+   margin: 3px auto;
+   border: 1px solid gray;
+}
+
+#uzp_footer{
+   height: 20px;
+   border: 1px solid gray;
+   width: 892px;
+   font-size:.8em;
+   color: #F2EAC7;
+   font-weight: bold;
+   text-align: right;
+   padding: 4px 15px 0px 2px;
+   vertical-align:middle;
+   background-color: #764B35;
+   margin: 5px;
+}
+
+#credits{
+   width: 500px;
+   margin: 2px auto;
+   text-align: center;
+   font-size: 0.9em;
+}
+
+#home_title{ font-size: bold; }
+.center{ text-align: center; clear: both;}

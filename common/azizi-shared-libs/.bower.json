@@ -1,0 +1,13 @@
+{
+  "name": "azizi-shared-libs",
+  "homepage": "https://github.com/ilri/azizi-shared-libs",
+  "_release": "69b03ca21c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "69b03ca21c5231c26b2d703c1fa10f07fb93bbfe"
+  },
+  "_source": "https://github.com/ilri/azizi-shared-libs.git",
+  "_target": "*",
+  "_originalSource": "https://github.com/ilri/azizi-shared-libs.git"
+}

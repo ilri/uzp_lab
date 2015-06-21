@@ -1,0 +1,133 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label,
+legend, table, caption, tbody, tfoot, thead, tr, th, td {
+   border:0pt none;
+   font-family:inherit;
+   font-size:100%;
+   font-style:inherit;
+   font-weight:inherit;
+   margin:0px;
+   outline-color:invert;
+   outline-style:none;
+   outline-width:0pt;
+   padding:0pt;
+   vertical-align:baseline;
+}
+
+table {
+   border-collapse:separate;
+   border-spacing:0pt;
+}
+
+caption, th, td {
+   font-weight:normal;
+   text-align:left;
+}
+
+blockquote:before, blockquote:after, q:before, q:after {
+   content:"";
+}
+
+blockquote, q {
+   quotes:"" "";
+}
+
+strong {
+   font-weight:bold;
+}
+
+em {
+   font-style:italic;
+}
+
+* {
+   margin:0pt;
+   padding:0pt;
+}
+
+input[type=text], input[type=button], input[type=reset], input[type=submit], option{
+   padding: 2px;
+   margin: 0px 2px;
+}
+
+option{
+   margin: 2px;
+}
+
+tr th{
+   font-weight: bold;
+}
+
+tr td{
+   padding: 2px;
+   margin: 2px;
+}
+
+.collapsed{
+  position: absolute;  /*position: static; can also be used*/
+  right: 9999px;
+}
+
+.expanded{
+	position: relative;
+}
+
+#notification_box{
+	text-align: right;
+	margin-left: 50%;
+	font-size: 13px;
+	font-weight: bold;
+   top: 135px;
+   z-index:999;
+   width:435px;
+   position:absolute;
+}
+
+#notification_box span{
+	background-color: #CCFF99;
+}
+
+#freezer{
+   margin: 15px 25% 5px;
+}
+
+#freezer h2{
+   margin: 3px 0px;
+   text-align: center;
+}
+
+#contents #error_page{
+   text-align: center;
+}
+
+#main{
+   margin: 10px 15%;
+}
+
+#main table{
+   margin: 0px 10%;
+   text-align: center;
+}
+
+html>body #main table{
+   width: 100%;
+   margin: 0px;
+}
+
+#main table tr td{
+   text-align: center;
+}
+
+#main table .left_align{
+   text-align: left;
+   width: 56%;
+}
+
+#main table .right_align{
+   text-align: right;
+}
+
+#main input{
+   background-color:#d5f1f1;
+   margin: 2px 2px;
+}

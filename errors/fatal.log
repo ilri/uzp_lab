@@ -1,0 +1,63 @@
+2015-06-21 16:50:05: :
+Fatal: Error while connecting to the database: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: YES)
+
+2015-06-21 16:50:05: : Execution Path to the last error:
+Fatal:Array
+(
+    [0] => Array
+        (
+            [file] => /www/uzp_lab/common/azizi-shared-libs/dbmodules/mod_objectbased_dbase_v1.1.php
+            [line] => 108
+            [function] => __construct
+            [class] => PDO
+            [type] => ->
+            [args] => Array
+                (
+                    [0] => mysql:dbname=uzp_99h_lab;host=localhost
+                    [1] => root
+                    [2] => root
+                )
+
+        )
+
+    [1] => Array
+        (
+            [file] => /www/uzp_lab/modules/mod_uzp_lab_general.php
+            [line] => 44
+            [function] => InitializeConnection
+            [class] => DBase
+            [type] => ->
+            [args] => Array
+                (
+                )
+
+        )
+
+    [2] => Array
+        (
+            [file] => /www/uzp_lab/modules/mod_startup.php
+            [line] => 48
+            [function] => __construct
+            [class] => Uzp
+            [type] => ->
+            [args] => Array
+                (
+                )
+
+        )
+
+    [3] => Array
+        (
+            [file] => /www/uzp_lab/index.php
+            [line] => 1
+            [args] => Array
+                (
+                    [0] => /www/uzp_lab/modules/mod_startup.php
+                )
+
+            [function] => require_once
+        )
+
+)
+
+
