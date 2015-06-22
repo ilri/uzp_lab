@@ -41,12 +41,52 @@ Uzp.prototype.showNotification = function(message, type){
 
 Uzp.prototype.saveReceivedSample = function(){
    // get the sample format and the received sample
-   var format = $('[name=sample_format]').val(), sample = $('[name=sample]').val();
+   var format = $('[name=sample_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val();
    if(sample === ''){
       uzp.showNotification('Please scan/enter the sample to save.', 'error');
       $("[name=sample]").focus();
       return;
    }
+   if(format === '' || format === undefined){
+      uzp.showNotification('Please enter the format of the sample that we are expecting.', 'error');
+      $("[name=sample_format]").focus();
+      return;
+   }
+   else{
+      //lets validate the aliquot format
+         reg = /^[a-z]{2,3}\s+[0-9]$/i
+         var aliquot_format = format.trim().toUpperCase();
+         if(!reg.test(aliquot_format)){
+            var mssg = 'Please enter the aliquot format to expect. The format should be something like ALQ 6 meaning that each aliquot will have the prefix ALQ or UZ followed by 6 digits';
+            uzp.showNotification(mssg, 'error');
+            $('[name=sample_format]').focus();
+            return;
+         }
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=step1&do=save", async: false, dataType:'json', data: {format: format, sample: sample, cur_user: cur_user},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus('').focus();
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus();
+            $("[name=sample]").val('');
+            var currentdate = new Date();
+            var datetime = " @ " + currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('#receive_samples .saved').prepend(sample +' - '+ datetime+ "<br />");
+         }
+     }
+  });
 };
 
 Uzp.prototype.receiveSampleKeypress = function(event){

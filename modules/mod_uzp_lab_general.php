@@ -76,7 +76,10 @@ class Uzp extends DBase{
 
 
       if(OPTIONS_REQUESTED_MODULE == '') $this->homePage();
-      elseif(OPTIONS_REQUESTED_MODULE == 'step1') $this->receiveSamples();
+      elseif(OPTIONS_REQUESTED_MODULE == 'step1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->receiveSamples();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->receiveSamplesSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -128,6 +131,10 @@ class Uzp extends DBase{
     * Create a page for receiving samples
     */
    private function receiveSamples(){
+      $userVals = array('John Kiiru');
+      $userIds = array('kiiru_john');
+      $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'users', 'id' => 'usersId');
+      $userCombo = GeneralTasks::PopulateCombo($settings);
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -135,19 +142,21 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxgrid.js"></script>
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
 <div id="receive_samples">
    <h3 class="center" id="home_title">Log samples received from the field</h3>
    <div class="scan">
-      <label style="float: left;">Format of the samples to receive: </label>&nbsp;&nbsp;<input type="text" name="sample_format" /> <br /><br />
+      <div id="sample_format"><label style="float: left;">Sample format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <input type="text" name="sample" />
       <div>
          <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
       </div>
    </div>
-   <div class="received"></div>
+   <div class="received"><div class="saved">Received samples appear here</div></div>
 </div>
 <div id="notification_box"><div id="msg"></div></div>
 <script>
@@ -161,5 +170,16 @@ class Uzp extends DBase{
 </script>
 <?php
    }
+
+   private function receiveSamplesSave(){
+      // time to save the received sample
+      $query = 'insert into received_samples(sample, user) values(:sample, :user)';
+      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user']);
+
+      $result = $this->Dbase->ExecuteQuery($query, $vals);
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The sample has been saved succesfully.')));
+   }
+
 }
 ?>

@@ -55,4 +55,7 @@ body {
 input[type=text]{ height: 30px; }
 #home_title{ font-size: bold; }
 .center{ text-align: center; clear: both; }
-#receive_samples .scan{ margin: 5px 20px; }
+#receive_samples .scan{ margin: 5px; width: 680px; float: left; }
+#receive_samples .received{ margin: 5px 5px 5px 655px; width: 250px; min-height: 300px; border: 1px dotted black; }
+#sample_format{ float: left; }
+#current_user{ margin-left: 5px; padding-left: 5px; }
