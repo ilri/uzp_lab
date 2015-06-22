@@ -48,20 +48,23 @@ Uzp.prototype.saveReceivedSample = function(){
       return;
    }
    if(format === '' || format === undefined){
-      uzp.showNotification('Please enter the format of the sample that we are expecting.', 'error');
+      uzp.showNotification('Please a sample of the field sample to expect. Expecting a barcode like AVAQ63847', 'error');
       $("[name=sample_format]").focus();
       return;
    }
-   else{
-      //lets validate the aliquot format
-         reg = /^[a-z]{2,3}\s+[0-9]$/i
-         var aliquot_format = format.trim().toUpperCase();
-         if(!reg.test(aliquot_format)){
-            var mssg = 'Please enter the aliquot format to expect. The format should be something like ALQ 6 meaning that each aliquot will have the prefix ALQ or UZ followed by 6 digits';
-            uzp.showNotification(mssg, 'error');
-            $('[name=sample_format]').focus();
-            return;
-         }
+   if(uzp.fieldSampleRegex === undefined){
+      //lets create the sample regex format
+      var prefix = format.match(/^([a-z]+)/i);
+      var suffix = format.match(/([0-9]+)$/i);
+      uzp.fieldSampleRegex = '^'+prefix[0]+'[0-9]{'+suffix[0].length+'}$';
+   }
+   var regex = new RegExp(uzp.fieldSampleRegex, 'i');
+
+   // lets ensure that our sample is in the right format
+   if(regex.test(sample) === false){
+      uzp.showNotification('Error! Unknown sample type!', 'error');
+      $('[name=sample]').focus().val('');
+      return;
    }
    if(cur_user === '0'){
       uzp.showNotification('Please select the current user.', 'error');
