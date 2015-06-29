@@ -84,6 +84,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->brothEnrichmentHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->brothEnrichmentSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step3'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->mcConkyPlateHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->mcConkyPlateSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -246,6 +250,11 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /**
+    * Create the user dropdown boxes which will be consistent in most of the modules
+    *
+    * @return  string   Returns a HTML string which creates the user dropdown
+    */
    private function usersCombo(){
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
@@ -253,6 +262,77 @@ class Uzp extends DBase{
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
       return $userCombo;
+   }
+
+   private function mcConkyPlateHome(){
+      $userCombo = $this->usersCombo();
+
+      $mediaVals = array('Sample Media');
+      $mediaIds = array('sample_media');
+      $settings = array('items' => $mediaVals, 'values' => $mediaIds, 'firstValue' => 'Select One', 'name' => 'media', 'id' => 'mediaId', 'class' => 'input-medium');
+      $mediaCombo = GeneralTasks::PopulateCombo($settings);
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="mcconky_plate">
+   <h3 class="center" id="home_title">Loading the broth samples on the McConky plate</h3>
+   <div class="scan">
+      <div id="broth_format"><label style="float: left;">Broth format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
+      <div id="mcconky_format"><label style="float: left;">McConky Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="media_used"><label style="float: left;">Media Used: </label>&nbsp;&nbsp;<?php echo $mediaCombo; ?></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked plates appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveMcconkyPlate).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   private function mcConkyPlateSave(){
+      /**
+       * check whether the broth sample is in the database
+       * if it is in the database, save the association of the broth and plate
+       */
+      $checkQuery = 'select id from broth_assoc where broth_sample = :sample';
+      $insertQuery = 'insert into mcconky_assoc(broth_sample_id, plate1_barcode, user, media_used) values(:broth_sample_id, :plate1_barcode, :user, :media_used)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['broth_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The broth sample '{$_POST['broth_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('broth_sample_id' => $result[0]['id'], 'plate1_barcode' => $_POST['plate_barcode'], 'user' => $_POST['cur_user'], 'media_used' => $_POST['media_used']));
+      if($result == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 }
 ?>
