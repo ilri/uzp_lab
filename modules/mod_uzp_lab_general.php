@@ -84,6 +84,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->brothEnrichmentHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->brothEnrichmentSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step5'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate2Home();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate2Save();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -237,6 +241,71 @@ class Uzp extends DBase{
       $insertQuery = 'insert into broth_assoc(field_sample_id, broth_sample, user) values(:field_sample_id, :broth_sample, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The field sample '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('field_sample_id' => $result[0]['id'], 'broth_sample' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+   
+   private function plate2Home(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Second Platting</h3>
+   <div class="scan">
+      <div id="colony_format"><label style="float: left;">Colony barcode format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="plate_format"><label style="float: left;">Plate 2 barcode format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked samples appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveBioChemSample).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the broth enrichment
+    */
+   private function plate2Save(){
+      /**
+       * check whether the parent sample is in the database
+       * if it is in the database, save the association
+       */
+      $checkQuery = 'select id from archive where colony = :colony';
+      $insertQuery = 'insert into plate2(colony_id, plate, user) values(:field_sample_id, :broth_sample, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The field sample '{$_POST['field_sample']}' is not in the database.")));
 

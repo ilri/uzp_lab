@@ -57,10 +57,10 @@ class Config extends GeneralTasks{
     * @var array  An array that holds the connection settings used to connect to the database
     */
    static public $config = array(
-      'user' => 'root',                      // username to use to connect to the dbase
-      'pass' => 'admin',                      // password of the defined user
-      'dbase' => 'uzp_99h_lab',             // database name
-      'session_dbase' => 'uzp_99h_lab',    // database name
+      'user' => 'azizi_repository',                      // username to use to connect to the dbase
+      'pass' => 'JfQf967u94qK',                      // password of the defined user
+      'dbase' => 'azizi_uzp_99h_lab',             // database name
+      'session_dbase' => 'azizi_uzp_99h_lab',    // database name
       'dbloc' => 'localhost'                // database location
    );
 
