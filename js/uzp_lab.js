@@ -99,6 +99,7 @@ Uzp.prototype.receiveSampleKeypress = function(event){
       if(uzp_lab.module === 'step1') uzp.saveReceivedSample();
       else if(uzp_lab.module === 'step2') uzp.saveBrothSample();
       else if(uzp_lab.module === 'step3') uzp.saveMcConkyPlate();
+      else if(uzp_lab.module === 'step4') uzp.saveColonies();
 	}
 };
 
@@ -284,3 +285,5 @@ Uzp.prototype.saveMcConkyPlate = function(){
      }
   });
 };
+
+Uzp.prototype.saveColonies = function(){};
