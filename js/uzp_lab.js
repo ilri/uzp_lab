@@ -101,6 +101,48 @@ Uzp.prototype.receiveSampleKeypress = function(event){
 	}
 };
 
+/**
+ * Given a sample barcode, automatically generate the regex that will be used to validate the expected samples
+ *
+ * @param   {string}    sampleBarcode
+ * @returns {RegExp}    Returns the created regex
+ */
+Uzp.prototype.createSampleRegex = function(sampleBarcode){
+   var prefix = sampleBarcode.match(/^([a-z]+)/i);
+   var suffix = sampleBarcode.match(/([0-9]+)$/i);
+   var regex_f = '^'+prefix[0]+'[0-9]{'+suffix[0].length+'}$';
+   var newRegex = new RegExp(regex_f, 'i');
+
+   return newRegex;
+};
+
+Uzp.prototype.validateScannedSamples = function(settings){
+   // check which kind of sample combinations we have here
+   if(uzp.prevSampleType === undefined || uzp.curSampleType === undefined){
+      uzp.showNotification('One sample type is not defined, so get the next sample... Current association of: ' +uzp.prevSample+ ' & '+uzp.curSample, 'mail');
+      $("[name=sample]").focus().val('');
+      return 1;  // one of the sample type is not defined... so lets return
+   }
+   else if(uzp.prevSampleType === settings.secondSample && uzp.curSampleType === settings.secondSample){
+      // discard this and start afresh
+      uzp.prevSampleType = undefined; uzp.curSampleType = undefined;
+      uzp.prevSample = undefined; uzp.curSample = undefined;
+      $("[name=sample]").focus().val('');
+      return;
+   }
+   else if(uzp.prevSampleType === settings.firstSample && uzp.curSampleType === settings.secondSample){
+      // save this association
+      uzp.showNotification('Saving this association of parent ==> ' +uzp.prevSample+ ' and broth ==> '+uzp.curSample, 'success');
+      return 0;
+   }
+   else{
+      // we have some other permutation.. so keep going
+      uzp.showNotification('Got the current association of parent ==> ' +uzp.prevSample+ ' and broth ==> '+uzp.curSample+', so continue scanning.', 'mail');
+      $("[name=sample]").focus().val('');
+      return 1;
+   }
+};
+
 Uzp.prototype.saveBrothSample = function(){
    // get the sample format and the received sample
    var sample_format = $('[name=sample_format]').val(), broth_format = $('[name=broth_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
@@ -125,17 +167,9 @@ Uzp.prototype.saveBrothSample = function(){
       return;
    }
 
-   // create the regex that will be used for validating the samples
-   var prefix = sample_format.match(/^([a-z]+)/i);
-   var suffix = sample_format.match(/([0-9]+)$/i);
-   var s_regex_f = '^'+prefix[0]+'[0-9]{'+suffix[0].length+'}$';
-   prefix = broth_format.match(/^([a-z]+)/i);
-   suffix = broth_format.match(/([0-9]+)$/i);
-   var b_regex_f = '^'+prefix[0]+'[0-9]{'+suffix[0].length+'}$';
-
    //lets validate the aliquot format
-   var s_regex = new RegExp(s_regex_f, 'i');
-   var b_regex = new RegExp(b_regex_f, 'i');
+   var s_regex = uzp.createSampleRegex(sample_format);
+   var b_regex = uzp.createSampleRegex(broth_format);
 
    // check whether we are dealing with the field or broth sample
    if(s_regex.test(sample) === true){
@@ -160,29 +194,8 @@ Uzp.prototype.saveBrothSample = function(){
    uzp.prevSample = uzp.curSample;  // move the previous current sample to the previous sample
    uzp.curSample = sample;
 
-   // ok, now lets see what we have here
-   if(uzp.prevSampleType === undefined || uzp.curSampleType === undefined){
-      uzp.showNotification('One sample type is not defined, so get the next sample... Current association of: ' +uzp.prevSample+ ' & '+uzp.curSample, 'mail');
-      $("[name=sample]").focus().val('');
-      return;  // one of the sample type is not defined... so lets return
-   }
-   else if(uzp.prevSampleType === 'broth_sample' && uzp.curSampleType === 'broth_sample'){
-      // discard this and start afresh
-      uzp.prevSampleType = undefined; uzp.curSampleType = undefined;
-      uzp.prevSample = undefined; uzp.curSample = undefined;
-      $("[name=sample]").focus().val('');
-      return;
-   }
-   else if(uzp.prevSampleType === 'field_sample' && uzp.curSampleType === 'broth_sample'){
-      // save this association
-      uzp.showNotification('Saving this association of parent ==> ' +uzp.prevSample+ ' and broth ==> '+uzp.curSample, 'success');
-   }
-   else{
-      // we have some other permutation.. so keep going
-      uzp.showNotification('Got the current association of parent ==> ' +uzp.prevSample+ ' and broth ==> '+uzp.curSample+', so continue scanning.', 'mail');
-      $("[name=sample]").focus().val('');
-      return;
-   }
+   var res = uzp.validateScannedSamples({firstSample: 'field_sample', secondSample: 'broth_sample'});
+   if(res === 1){ return; }
 
    // seems all is well, lets save the sample
    $.ajax({
