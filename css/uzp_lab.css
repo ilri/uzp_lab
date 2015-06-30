@@ -57,6 +57,6 @@ input[type=text]{ height: 30px; }
 .center{ text-align: center; clear: both; }
 #receive_samples .scan, #broth_enrichment .scan, #mcconky_plate .scan, #colonies .scan{ margin: 5px; width: 700px; float: left; }
 #receive_samples .received, #broth_enrichment .received, #mcconky_plate .received, #colonies .received{ margin: 5px 5px 5px 710px; width: 205px; min-height: 300px; border: 1px dotted black; }
-#sample_format, #broth_format, #mcconky_format, #colonies_format, #plate_format, #media_format, #colony_format{ float: left; }
+#sample_format, #broth_format, #mcconky_format, #colonies_format, #plate_format, #media_format, #colony_format, #drug_name, #drug_value{ float: left; }
 #scanned_colonies{ height: 100px; width: 200px; border: 1px dotted black; margin: 2px auto; }
 #current_user{ margin-left: 5px; padding-left: 5px; }

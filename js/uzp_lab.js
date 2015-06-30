@@ -138,6 +138,14 @@ Uzp.prototype.receiveSampleKeypress = function(event){
             $(this).next().focus();
          }
       }
+      else if(uzp_lab.module === 'step10') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveAstResult();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
 	}
 };
 
@@ -375,6 +383,53 @@ Uzp.prototype.saveBioChemResult = function(){
      }
   });
 };
+
+Uzp.prototype.saveAstResult = function(){
+   // get the sample format and the received sample
+   var sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), drug = $('#drugNameId').val(), drug_value = $('[name=drug_value]').val();
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the sample to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+   if(drug === '0'){
+      uzp.showNotification('Please select the drug.', 'error');
+      return;
+   }
+   if(drug_value === ''){
+      uzp.showNotification('Please select the test result.', 'error');
+      return;
+   }
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      //array('plate45_id' => $result[0]['id'], 'drug' => $_POST['drug'], 'value' => $_POST['drug_value'], 'user' => $_POST['cur_user'])
+      type:"POST", url: "mod_ajax.php?page=step10&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, drug: drug, drug_value: drug_value},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ drug +"<br />");
+            //reset test and result
+            $('#testId').val("0");
+            $('#testResultId').val("0");
+         }
+     }
+  });
+};
+
 Uzp.prototype.addMediumSample = function(sample) {
    //check if the sample aleady exists in the list
    var found = false;

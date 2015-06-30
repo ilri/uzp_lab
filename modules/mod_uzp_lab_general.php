@@ -104,6 +104,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3to45Home();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3to45Save();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step10'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->astResultHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->astResultSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -605,6 +609,73 @@ class Uzp extends DBase{
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
 
    }
+   
+   private function astResultHome(){
+      $userCombo = $this->usersCombo();
+      $drugNameCombo = $this->drugNameCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Plates 4,5 -> AST Result Reading</h3>
+   <div class="scan">
+      <div id="drug_name"><label style="float: left;">Drug name: </label>&nbsp;&nbsp;<?php echo $drugNameCombo; ?></div>
+      <div id="drug_value"><label style="float: left;">Drug value: </label>&nbsp;&nbsp;<input type="text" name="drug_value" class="input-small"/></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Recorded tests appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveAstResult).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the broth enrichment
+    */
+   private function astResultSave(){
+      /**
+       * check whether the parent sample is in the database
+       * if it is in the database, save the association
+       */
+      //{cur_user: cur_user, sample: sample, test_name: test_name, test_result: test_result}
+      $checkQuery = 'select id from plate45 where plate = :plate';
+      $insertQuery = 'insert into ast_result(plate45_id, drug, value, user) values(:plate45_id, :drug, :value, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The sample '{$_POST['sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('plate45_id' => $result[0]['id'], 'drug' => $_POST['drug'], 'value' => $_POST['drug_value'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'Test has been saved succesfully.')));
+   }
+   
    private function usersCombo(){
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
@@ -627,6 +698,15 @@ class Uzp extends DBase{
       $userVals = array('Positive', 'Negative');
       $userIds = array('positive', 'negative');
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'testResults', 'id' => 'testResultId', 'class' => 'input-medium');
+      $userCombo = GeneralTasks::PopulateCombo($settings);
+
+      return $userCombo;
+   }
+   
+   private function drugNameCombo(){
+      $userVals = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
+      $userIds = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
+      $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'drugName', 'id' => 'drugNameId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
       return $userCombo;
