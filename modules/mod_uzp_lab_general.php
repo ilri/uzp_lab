@@ -100,6 +100,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3Home();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3Save();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step9'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3to45Home();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3to45Save();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -498,7 +502,7 @@ class Uzp extends DBase{
 
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
-   $("#jqxSubmitButton").on('click', uzp.saveBioChemSample).jqxButton({ width: '150'});
+   $("#jqxSubmitButton").on('click', uzp.savePlate3).jqxButton({ width: '150'});
 
    uzp.prevSample = undefined;
    uzp.curSample = undefined;
@@ -529,7 +533,78 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
+   
+   private function plate3to45Home(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
+<div id="colonies">
+   <h3 class="center" id="home_title">Plate 3 -> Plate 4 and Plate 5</h3>
+   <div class="scan">
+      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="media_format"><label style="float: left;">Plate 4,5 format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <label>Scanned colonies</label><div id="scanned_colonies" class="center"></div>
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Saved colonies appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.savePlate3to45).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   uzp.mediumBarcodeList = [];
+   uzp.plateSample = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+   
+   private function plate3to45Save() {
+      $checkQuery = 'select id from plate3 where plate = :plate';
+      $insertQuery = 'insert into plate45(plate3_id, plate, number, user) values(:plate3_id, :curr_plate, :number, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['plate']}' is not in the database.")));
+ 
+      // now add the association
+      $this->Dbase->StartTrans();
+      $number = 4;
+      foreach($_POST['colonies'] as $colony){
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('plate3_id' => $result[0]['id'], 'curr_plate' => $colony, 'number' => $number, 'user' => $_POST['cur_user']));
+         if($res == 1){
+            $this->Dbase->RollBackTrans();
+            if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+            else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         }
+         $number++;
+      }
+      $this->Dbase->CommitTrans();
+      die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+
+   }
    private function usersCombo(){
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
