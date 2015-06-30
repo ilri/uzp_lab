@@ -286,4 +286,107 @@ Uzp.prototype.saveMcConkyPlate = function(){
   });
 };
 
-Uzp.prototype.saveColonies = function(){};
+/**
+ * Saves the current association of plates and colonies
+ * @returns {undefined}    Returns nothing
+ */
+Uzp.prototype.saveColonies = function(){
+   // check for the pre-requisites
+   var colonies_format = $('[name=colonies_format]').val(), plate_format = $('[name=plate_format]').val();
+   var sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the sample to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(plate_format === '' || plate_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the broth. It should be something like \'BSR010959\'', 'error');
+      $("[name=broth_format]").focus();
+      return;
+   }
+   if(colonies_format === '' || colonies_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the plate barcode. It should be something like \'AVAQ70919\'.', 'error');
+      $("[name=plate_format]").focus();
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      $("[name=sample]").focus().val('');
+      return;
+   }
+
+   //lets validate the samples
+   var p_regex = uzp.createSampleRegex(plate_format);
+   var c_regex = uzp.createSampleRegex(colonies_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(p_regex.test(sample) === true){
+      if(uzp.parentSample !== undefined && uzp.colonies.length !== 0){
+         // lets save this association
+         $.ajax({
+            type:"POST", url: "mod_ajax.php?page=step4&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
+            success: function (data) {
+               if(data.error === true){
+                  uzp.showNotification(data.mssg, 'error');
+                  $("[name=sample]").focus().val('');
+                  $('#label_scanned_colonies').html('Scanned colonies');
+                  uzp.parentSample = undefined; uzp.curSample = undefined; uzp.colonies = [];
+                  $('#scanned_colonies').html('');
+                  return;
+               }
+               else{
+                  // we have saved the sample well...
+                  $("[name=sample]").focus().val('');
+                  var currentdate = new Date();
+                  var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+                  $.each(uzp.colonies, function(i, that){
+                     $('.received .saved').prepend(datetime +': '+ uzp.parentSample +'=>'+ that +"<br />");
+                  });
+
+                  // lets prepare for the next sample
+                  uzp.parentSample = sample; uzp.curSample = undefined; uzp.colonies = [];
+                  $('#scanned_colonies').html('');
+                  $('#label_scanned_colonies').html('Scanned colonies for <b>'+ sample +'</b>');
+                  return;
+               }
+           }
+        });
+      }
+      else{
+         uzp.parentSample = sample;
+         $('#label_scanned_colonies').html('Scanned colonies for <b>'+ sample +'</b>');
+         // we have a parent plate
+         uzp.showNotification('Got a plate with barcode... ' +uzp.parentSample+ ' scan the colonies.', 'mail');
+         $("[name=sample]").focus().val('');
+         uzp.colonies = [];
+         return;
+      }
+   }
+   else if(c_regex.test(sample) === true){
+      if(uzp.parentSample !== undefined){
+         // add the sample to the list of colonies and to the div
+         uzp.colonies[uzp.colonies.length] = sample;
+         var currentdate = new Date();
+         var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+         $('#scanned_colonies').prepend(datetime +': '+ sample +"<br />");
+
+         // we have a colony
+         uzp.showNotification('Colony with barcode... '+ sample +'....', 'mail');
+         $("[name=sample]").focus().val('');
+         return;
+      }
+      else{
+         uzp.showNotification('You can\'t scan a colony without scanning the plate first. Current barcode'+ sample +'!', 'error');
+         return;
+      }
+   }
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
+      uzp.parentSample = undefined; uzp.curSample = undefined; uzp.colonies = [];
+      $('#scanned_colonies').html('');
+      return;
+   }
+};

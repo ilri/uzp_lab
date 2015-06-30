@@ -339,6 +339,9 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /*
+    * Creates a home page for the colonies and plate association
+    */
    private function coloniesHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -354,12 +357,12 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Creating colonies for archival from the McConky plate</h3>
    <div class="scan">
       <div id="mcconky_format"><label style="float: left;">McConky Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BSR010959" /></div>
+      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
          <input type="text" name="sample" />
-         <label>Scanned colonies</label><div id="scanned_colonies" class="center"></div>
+         <label id="label_scanned_colonies">Scanned colonies</label><div id="scanned_colonies" class="center"></div>
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
          </div>
@@ -382,7 +385,35 @@ class Uzp extends DBase{
    $(document).keypress(uzp.receiveSampleKeypress);
 </script>
 <?php
+   }
 
+   /**
+    * Saves a plate and the colonies derived from that plate
+    */
+   private function coloniesSave(){
+      /**
+       * check whether the plate is in the database
+       * if it is in the database, save the plate and its associated colonies
+       */
+      $checkQuery = 'select id from mcconky_assoc where plate1_barcode = :plate';
+      $insertQuery = 'insert into colonies(mcconky_plate_id, colony, user) values(:mcconky_plate_id, :colony, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['plate']}' is not in the database.")));
+
+      // now add the association
+      $this->Dbase->StartTrans();
+      foreach($_POST['colonies'] as $colony){
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('mcconky_plate_id' => $result[0]['id'], 'colony' => $colony, 'user' => $_POST['cur_user']));
+         if($res == 1){
+            $this->Dbase->RollBackTrans();
+            if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+            else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         }
+      }
+      $this->Dbase->CommitTrans();
+      die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 }
 ?>
