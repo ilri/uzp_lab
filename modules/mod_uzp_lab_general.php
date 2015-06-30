@@ -116,6 +116,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plateToEppendorfHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plateToEppendorfSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step13'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->dnaArchivingHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->dnaArchivingSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -817,6 +821,64 @@ class Uzp extends DBase{
       die(json_encode(array('error' => false, 'mssg' => 'Eppendorfs have been saved succesfully.')));
    }
    
+   private function dnaArchivingHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Eppendorf / DNA Extract -> Archive</h3>
+   <div class="scan">
+      <div id="colony_format"><label style="float: left;">Eppendorf format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="plate_format"><label style="float: left;">DNA barcode format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked samples appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveDnaArchiving).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the broth enrichment
+    */
+   private function dnaArchivingSave(){
+      /**
+       * check whether the parent sample is in the database
+       * if it is in the database, save the association
+       */
+      $insertQuery = 'update dna_eppendorfs set dna = :dna, user = :user where eppendorf = :eppendorf';
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('dna' => $_POST['dna'], 'eppendorf' => $_POST['eppendorf'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association saved succesfully.')));
+   }
    private function usersCombo(){
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
