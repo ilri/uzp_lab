@@ -112,6 +112,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->regrowHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->regrowSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step12'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plateToEppendorfHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plateToEppendorfSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -744,6 +748,75 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
+   
+   private function plateToEppendorfHome(){
+      $userCombo = $this->usersCombo();
+      $drugNameCombo = $this->drugNameCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Plate 6 -> Eppendorf / DNA Extract (12)</h3>
+   <div class="scan">
+      <div id="no_eppendorfs"><label style="float: left;">Number of eppendorfs: </label>&nbsp;&nbsp;<input type="number" name="no_eppendorfs" class="input-small" style="height: 30px;"/></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Recorded plates here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.savePlateToEppendorfs).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the broth enrichment
+    */
+   private function plateToEppendorfSave(){
+      /**
+       * check whether the parent sample is in the database
+       * if it is in the database, save the association
+       */
+      //{cur_user: cur_user, sample: sample, test_name: test_name, test_result: test_result}
+      $checkQuery = 'select id from plate6 where plate = :plate';
+      $insertQuery = 'insert into dna_eppendorfs(plate6_id, eppendorf, user) values(:plate6_id, :eppendorf, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The sample '{$_POST['sample']}' is not in the database.")));
+
+      // now add the association
+      for($index = 1; $index <= $_POST['no_eppendorfs']; $index++) {
+         $eppendorfNo = $_POST['sample']."-".$index;
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('plate6_id' => $result[0]['id'], 'eppendorf' => $eppendorfNo, 'user' => $_POST['cur_user']));
+         if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'Eppendorfs have been saved succesfully.')));
+   }
+   
    private function usersCombo(){
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
