@@ -92,6 +92,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->coloniesHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->coloniesSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step5.1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->coloniesStorage();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->coloniesStorageSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -414,6 +418,95 @@ class Uzp extends DBase{
       }
       $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
+    * Create the home page for saving colonies in boxes
+    */
+   private function coloniesStorage(){
+      $userCombo = $this->usersCombo();
+      $layout = $this->storageBoxLayout(10, 10);
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="colonies_storage">
+   <h3 class="center" id="home_title">Logging all created colonies</h3>
+   <div class="scan">
+      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
+      <div id="plate_format"><label style="float: left;">Storage Box: </label>&nbsp;&nbsp;<input type="text" name="storage_box" class="input-small" value="AVMS00050" /></div>
+      <div id="colony_pos"><label style="float: left;">Position: </label>&nbsp;&nbsp;<input type="text" name="colony_pos" class="input-small" value="1" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+   </div>
+   <div class="left">
+      <input type="text" name="sample" />
+      <div>
+         <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+      </div>
+   </div>
+   <div id="plate_layout"><?php echo $layout; ?></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveColonies).jqxButton({ width: '150'});
+
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Creates a layout for a box of size $sizeL x $sizeH
+    *
+    * @param   integer  $sizeL   The number of positions along the box length
+    * @param   integer  $sizeH   The number of positions on the width
+    */
+   private function storageBoxLayout($sizeL, $sizeH, $samples){
+      $k = 1;
+      $layout = '';
+      for($i = 0; $i < $sizeL; $i++){
+         $layout .= "<div class='row'>";
+         for($j = 0; $j < $sizeH; $j++, $k++){
+            // create a div for this box
+            if(isset($samples[$k])) $layout .= "<div class='pos occupied'>$k</div>";
+            else $layout .= "<div class='pos empty pos_$k'>$k</div>";
+         }
+         $layout .= "</div>";
+      }
+
+      return $layout;
+   }
+
+   /**
+    * Save a colony in the specified box
+    */
+   private function coloniesStorageSave(){
+      /**
+       * Check whether the colony exists in the database and save it in the defined box and position
+       */
+      $checkQuery = 'select id, box, position_in_box from colonies where colony = :colony';
+      $updateQuery = 'update colonies set box = :box, position_in_box = :pos, pos_saved_by = :user where id = :id';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['colony']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The colony '{$_POST['colony']}' is not in the database.")));
+      else if($result[0]['box'] != NULL) die(json_encode(array('error' => true, 'mssg' => "The colony '{$_POST['colony']}' has already been saved before in <b>{$result[0]['box']}</b> pos <b>{$result[0]['position_in_box']}</b>.")));
+
+      $res = $this->Dbase->ExecuteQuery($updateQuery, array('box' => $_POST['box'], 'pos' => $_POST['cur_pos'], 'user' => $_POST['cur_user'], 'id' => $result[0]['id']));
+      if($res == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current position')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      else die(json_encode(array('error' => false, 'mssg' => 'The colony storage has been saved succesfully.')));
    }
 }
 ?>

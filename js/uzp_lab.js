@@ -100,6 +100,7 @@ Uzp.prototype.receiveSampleKeypress = function(event){
       else if(uzp_lab.module === 'step2') uzp.saveBrothSample();
       else if(uzp_lab.module === 'step3') uzp.saveMcConkyPlate();
       else if(uzp_lab.module === 'step4') uzp.saveColonies();
+      else if(uzp_lab.module === 'step5.1') uzp.saveColoniesPositions();
 	}
 };
 
@@ -387,6 +388,68 @@ Uzp.prototype.saveColonies = function(){
       $("[name=sample]").focus().val('');
       uzp.parentSample = undefined; uzp.curSample = undefined; uzp.colonies = [];
       $('#scanned_colonies').html('');
+      return;
+   }
+};
+
+Uzp.prototype.saveColoniesPositions = function(){
+   // get the sample format and the received sample
+   var colonies_format = $('[name=colonies_format]').val(), storage_box = $('[name=storage_box]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), cur_pos = $('[name=colony_pos]').val();
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the sample to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(colonies_format === '' || colonies_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the colonies. It should be something like \'BSR010959\'', 'error');
+      $("[name=colonies_format]").focus();
+      return;
+   }
+   if(storage_box === '' || storage_box === undefined){
+      uzp.showNotification('Please scan the barcode for the storage boxes. It should be something like \'AVAQ70919\'.', 'error');
+      $("[name=storage_box]").focus();
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+   if(cur_pos === ''){
+      uzp.showNotification('Please enter the current position of the colony.', 'error');
+      return;
+   }
+
+   //lets validate the aliquot format
+   var c_regex = uzp.createSampleRegex(colonies_format);
+   var b_regex = uzp.createSampleRegex(storage_box);
+
+   // check whether we are dealing with the field or broth sample
+   if(c_regex.test(sample) === true){
+      // save the colony to the next slot of this box
+      $.ajax({
+         type:"POST", url: "mod_ajax.php?page=step5.1&do=save", async: false, dataType:'json', data: {colony: sample, box: storage_box, cur_user: cur_user, cur_pos: cur_pos},
+         success: function (data) {
+            if(data.error === true){
+               uzp.showNotification(data.mssg, 'error');
+               $("[name=sample]").focus().val('');
+               return;
+            }
+            else{
+               // we have saved the sample well... lets prepare for the next sample
+               $("[name=sample]").focus().val('');
+               var suffix = sample.match(/([0-9]+)$/i);
+               $('#plate_layout .pos_'+cur_pos).html(suffix[0] +' ('+ cur_pos +')').css({'background-color': '#009D59'});
+               $('[name=colony_pos]').val(parseInt(cur_pos)+1);
+               uzp.showNotification(data.mssg, 'success');
+            }
+         }
+      });
+   }
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
       return;
    }
 };
