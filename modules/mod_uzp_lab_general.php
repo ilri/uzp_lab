@@ -346,7 +346,7 @@ class Uzp extends DBase{
        * check whether the parent sample is in the database
        * if it is in the database, save the association
        */
-      $checkQuery = 'select id from archive where colony = :colony';
+      $checkQuery = 'select id from colonies where colony = :colony';
       $insertQuery = 'insert into plate2(colony_id, plate, user) values(:field_sample_id, :broth_sample, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
@@ -548,7 +548,7 @@ class Uzp extends DBase{
        * check whether the parent sample is in the database
        * if it is in the database, save the association
        */
-      $checkQuery = 'select id from archive where colony = :colony';
+      $checkQuery = 'select id from colonies where colony = :colony';
       $insertQuery = 'insert into plate3(colony_id, plate, user) values(:field_sample_id, :broth_sample, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
@@ -751,7 +751,7 @@ class Uzp extends DBase{
        * check whether the parent sample is in the database
        * if it is in the database, save the association
        */
-      $checkQuery = 'select id from archive where colony = :colony';
+      $checkQuery = 'select id from colonies where colony = :colony';
       $insertQuery = 'insert into plate6(colony_id, plate, user) values(:field_sample_id, :broth_sample, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
