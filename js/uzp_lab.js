@@ -499,11 +499,67 @@ Uzp.prototype.saveAstResult = function(){
       uzp.showNotification('Please select the test result.', 'error');
       return;
    }
-
+   
+   //check to see if all the drugs are entered
+   var drugs = [];
+   var drugIdRegex = /^drug_.+_val[0-9]{1}$/;
+   var allGood = true;
+   $("input[type=number]").each(function(){
+      var inputId = $(this).attr('id');
+      if(drugIdRegex.test(inputId) == true) {
+         console.log("input with id = ",inputId," fits the regex");
+         var inputParts = inputId.split("_");
+         if(inputParts.length == 3) {//we only expect 3 parts eg [drug]_[ASV1]_[val1]
+            if(typeof drugs[inputParts[1]] == "undefined") {
+               drugs[inputParts[1]] = {val1:undefined,val2:undefined};
+            }
+            if($(this).val().length == 0) {
+               uzp.showNotification("Please fill the value of "+inputParts[1], "error");
+               $(this).focus();
+               allGood = false;
+               return;
+            }
+            else {
+               drugs[inputParts[1]][inputParts[2]] = $(this).val();
+            }
+         }
+         else {
+            console.log("Drug fits regex but really doesn't have 3 parts", inputId);
+            allGood = false;
+            return;
+         }
+      }
+   });
+   if(allGood == false) return;
+   var cleanDrugs = [];
+   var drugKeys = Object.keys(drugs);
+   console.log(drugKeys);
+   console.log("Length of drugs array = ",drugs.length);
+   for(var index = 0; index < drugKeys.length; index++) {
+      console.log("Currently at drug ", drugs[drugKeys[index]]);
+      if(typeof drugs[drugKeys[index]].val1 == 'undefined'
+              || typeof drugs[drugKeys[index]].val2 == 'undefined') {
+         uzp.showNotification("Please fill the value of "+drugKeys[index], "error");
+         $("#drug_"+drugs[drugKeys[index]]+"_val1").focus();
+         allGood = false;
+         return;
+      }
+      else if(drugs[drugKeys[index]].val1 != drugs[drugKeys[index]].val2){
+         uzp.showNotification("The first and second values of "+drugKeys[index]+" do not match", "error");
+         $("#drug_"+drugs[drugKeys[index]]+"_val1").focus();
+         allGood = false;
+         return;
+      }
+      else {//value probably fine, add to clean drugs list
+         cleanDrugs[cleanDrugs.length] = {name:drugKeys[index], value:drugs[drugKeys[index]].val1};
+      }
+   }
+   if(allGood == false) return;
+   console.log(cleanDrugs);
    // seems all is well, lets save the sample
    $.ajax({
       //array('plate45_id' => $result[0]['id'], 'drug' => $_POST['drug'], 'value' => $_POST['drug_value'], 'user' => $_POST['cur_user'])
-      type:"POST", url: "mod_ajax.php?page=step10&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, drug: drug, drug_value: drug_value},
+      type:"POST", url: "mod_ajax.php?page=step10&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, drugs: cleanDrugs},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
@@ -515,7 +571,7 @@ Uzp.prototype.saveAstResult = function(){
             $("[name=sample]").focus().val('');
             var currentdate = new Date();
             var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
-            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ drug +"<br />");
+            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ cleanDrugs.length +" drugs<br />");
             //reset test and result
             $('#testId').val("0");
             $('#testResultId').val("0");

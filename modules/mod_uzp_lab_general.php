@@ -635,7 +635,7 @@ class Uzp extends DBase{
 
    private function astResultHome(){
       $userCombo = $this->usersCombo();
-      $drugNameCombo = $this->drugNameCombo();
+      $drugNameTable = $this->drugNameTable();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -645,11 +645,10 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
-<div id="broth_enrichment">
+<div id="ast_result">
    <h3 class="center" id="home_title">Plates 4,5 -> AST Result Reading</h3>
    <div class="scan">
-      <div id="drug_name"><label style="float: left;">Drug name: </label>&nbsp;&nbsp;<?php echo $drugNameCombo; ?></div>
-      <div id="drug_value"><label style="float: left;">Drug value: </label>&nbsp;&nbsp;<input type="text" name="drug_value" class="input-small"/></div>
+      <?php echo $drugNameTable;?>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
       <div class="center">
          <input type="text" name="sample" />
@@ -694,9 +693,11 @@ class Uzp extends DBase{
       else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The sample '{$_POST['sample']}' is not in the database.")));
 
       // now add the association
-      $result = $this->Dbase->ExecuteQuery($insertQuery, array('plate45_id' => $result[0]['id'], 'drug' => $_POST['drug'], 'value' => $_POST['drug_value'], 'user' => $_POST['cur_user']));
-      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
-      else die(json_encode(array('error' => false, 'mssg' => 'Test has been saved succesfully.')));
+      foreach($_POST['drugs'] as $currDrug) {
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('plate45_id' => $result[0]['id'], 'drug' => $currDrug['name'], 'value' => $currDrug['value'], 'user' => $_POST['cur_user']));
+         if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'Tests have been saved succesfully.')));
    }
 
    private function regrowHome(){
@@ -928,6 +929,28 @@ class Uzp extends DBase{
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'drugName', 'id' => 'drugNameId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
       return $userCombo;
+   }
+   
+   private function drugNameTable(){
+      $userVals = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
+      $userIds = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
+      $html = "<div>";
+      if(count($userVals) == count($userIds)) {
+         $bgColor = "yellow";
+         for($index = 0; $index < count($userIds); $index++) {
+            if($index == ceil(count($userIds)/2)) {
+               $html .= "</table>";
+               $bgColor = "green";
+            }
+            if($index == 0 || $index == ceil(count($userIds)/2)) $html .= "<table style='margin-right: 15px;display: inline-block; background-color: ".$bgColor.";'><tr><th>Drug Name</th><th>Value 1</th><th>Value 2</th></tr>";
+            
+            $html .= "<tr><td>".$userVals[$index]."</td><td><input type='number' class='input-small' name='drug_".$userIds[$index]."_val1' id='drug_".$userIds[$index]."_val1' /></td><td><input type='number' class='input-small' name='drug_".$userIds[$index]."_val2' id='drug_".$userIds[$index]."_val2' /></td></tr>";
+            
+            if($index == (count($userIds) - 1)) $html .= "</table>";
+         }
+      }
+      $html .= "</div>";
+      return $html;
    }
    
    private function mcConkyPlateHome(){
