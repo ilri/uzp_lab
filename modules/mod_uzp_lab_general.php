@@ -431,7 +431,6 @@ class Uzp extends DBase{
    private function bioChemTestResultHome(){
       $userCombo = $this->usersCombo();
       $testCombo = $this->bioChemicalTestCombo();
-      $testResultCombo = $this->bioChemicalTestResultCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -441,14 +440,16 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
-<div id="broth_enrichment">
+<div id="biochem_test">
    <h3 class="center" id="home_title">Biochemical Test Results</h3>
    <div class="scan">
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
          <div id="test_name"><label style="display: initial;">Test done: </label>&nbsp;&nbsp;<?php echo $testCombo; ?></div> <br />
-         <div id="test_result"><label style="display: initial;">Result: </label>&nbsp;&nbsp;<?php echo $testResultCombo; ?></div> <br />
+         <div id="res1"><label id="res1_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res1_select" name="res1_select"></select></div> <br />
+         <div id="res2"><label id="res2_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res2_select" name="res2_select"></select></div> <br />
+         <div id="res3"><label id="res3_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res3_select" name="res3_select"></select></div> <br />
          <input type="text" name="sample" />
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
@@ -464,7 +465,7 @@ class Uzp extends DBase{
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
    $("#jqxSubmitButton").on('click', uzp.saveBioChemResult).jqxButton({ width: '150'});
-
+   $("#testId").change(uzp.biochemTestLogic);
    uzp.prevSample = undefined;
    uzp.curSample = undefined;
    uzp.curSampleType = undefined;
@@ -484,16 +485,18 @@ class Uzp extends DBase{
        */
       //{cur_user: cur_user, sample: sample, test_name: test_name, test_result: test_result}
       $checkQuery = 'select id from biochemical_test where media = :media';
-      $insertQuery = 'insert into biochemical_test_results(media_id, test, result, user) values(:media_id, :test, :result, :user)';
+      $insertQuery = 'insert into biochemical_test_results(media_id, test, observ_type, observ_value, user) values(:media_id, :test, :observ_type, :observ_value, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('media' => $_POST['sample']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The sample '{$_POST['sample']}' is not in the database.")));
 
       // now add the association
-      $result = $this->Dbase->ExecuteQuery($insertQuery, array('media_id' => $result[0]['id'], 'test' => $_POST['test_name'], 'result' => $_POST['test_result'], 'user' => $_POST['cur_user']));
-      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
-      else die(json_encode(array('error' => false, 'mssg' => 'Test has been saved succesfully.')));
+      foreach($_POST['observations'] as $currTest){
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('media_id' => $result[0]['id'], 'test' => $_POST['test'], 'observ_type' => $currTest['name'], 'observ_value' => $currTest['result'], 'user' => $_POST['cur_user']));
+         if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'Test has been saved succesfully.')));
    }
 
    private function plate3Home(){
@@ -906,8 +909,8 @@ class Uzp extends DBase{
    }
 
    private function bioChemicalTestCombo(){
-      $userVals = array('Biochemical test1', 'Biochemical test2');
-      $userIds = array('test1', 'test2');
+      $userVals = array('TSI', 'Urea', 'MIO', 'Citrate');
+      $userIds = array('tsi', 'urea', 'mio', 'citrate');
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'tests', 'id' => 'testId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 

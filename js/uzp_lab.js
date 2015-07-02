@@ -39,6 +39,66 @@ Uzp.prototype.showNotification = function(message, type){
    uzp.prevNotificationClass = type;
 };
 
+Uzp.prototype.biochemTestLogic = function() {
+   $("#res1").hide();
+   $("#res2").hide();
+   $("#res3").hide();
+   if($("#testId").val() == "tsi") {
+      /* Test 1: slant color
+       * Test 2: butt color
+       * Test 3: gas present
+       */
+      $("#res1").show();
+      $("#res1_label").html("Slant color");
+      $("#res1_select").html(uzp.createOptionList(["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
+      $("#res2").show();
+      $("#res2_label").html("Butt color");
+      $("#res2_select").html(uzp.createOptionList(["Yellow", "Black", "Other"], ["yellow", "black", "other"]));
+      $("#res3").show();
+      $("#res3_label").html("Gas present");
+      $("#res3_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+   }
+   if($("#testId").val() == "urea") {
+      /* Test 1: Color
+       */
+      $("#res1").show();
+      $("#res1_label").html("Color");
+      $("#res1_select").html(uzp.createOptionList(["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
+   }
+   if($("#testId").val() == "mio") {
+      /* Test 1: Motile
+       * Test 2: Color
+       */
+      $("#res1").show();
+      $("#res1_label").html("Motile");
+      $("#res1_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+      $("#res2").show();
+      $("#res2_label").html("Color");
+      $("#res2_select").html(uzp.createOptionList(["Pink", "Not pink"], ["pink", "not_pink"]));
+   }
+   if($("#testId").val() == "citrate") {
+      /* Test 1: Growth
+       * Test 2: Color
+       */
+      $("#res1").show();
+      $("#res1_label").html("Growth");
+      $("#res1_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+      $("#res2").show();
+      $("#res2_label").html("Color");
+      $("#res2_select").html(uzp.createOptionList(["Green", "Not green"], ["green", "not_green"]));
+   }
+};
+
+Uzp.prototype.createOptionList = function(optionLabels, optionValues) {
+   var html = "<option value=''></option>";
+   if(optionLabels.length == optionValues.length) {
+      for(var index = 0; index < optionLabels.length; index++) {
+         html = html + "<option value='"+optionValues[index]+"'>"+optionLabels[index]+"</option>";
+      }
+   }
+   return html;
+};
+
 Uzp.prototype.saveReceivedSample = function(){
    // get the sample format and the received sample
    var format = $('[name=sample_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val();
@@ -454,10 +514,39 @@ Uzp.prototype.saveBioChemResult = function(){
       uzp.showNotification('Please select the test result.', 'error');
       return;
    }
-
+   
+   //check if all the tests selected
+   var testResults = [];
+   var allGood = true;
+   $("select").each(function(){
+      var selectId = $(this).attr('id');
+      var idRegex = /res[0-9]_select/;
+      if(idRegex.test(selectId) == true) {
+         //check if select is visible
+         var idParts = selectId.split("_");
+         if($(this).is(":visible") && idParts.length == 2) {
+            var testName = $("#"+idParts[0]+"_label").html();
+            if($(this).val().length > 0) {
+               testResults[testResults.length] = {name:testName, result:$(this).val()};
+            }
+            else {
+               uzp.showNotification('Please select a vaule for '+testName, 'error');
+               $(this).focus();
+               allGood = false;
+               return;
+            }
+         }
+      }
+   });
+   if(allGood == false) return;
+   console.log(testResults);
+   if($("#testId").val().length == 0) {
+      uzp.showNotification('Please select a test', 'error');
+      $("#testId").focus();
+   }
    // seems all is well, lets save the sample
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page=step7&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, test_name: test_name, test_result: test_result},
+      type:"POST", url: "mod_ajax.php?page=step7&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, test: $("#testId").val(), observations: testResults},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
