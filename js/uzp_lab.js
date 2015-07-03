@@ -699,35 +699,25 @@ Uzp.prototype.savePlateToEppendorfs = function(){
       uzp.showNotification('Please select the current user.', 'error');
       return;
    }
-   if(no_eppendorfs === ''){
-      uzp.showNotification('Please enter the number of eppendorfs.', 'error');
-      return;
-   }
-   else if(isNaN(no_eppendorfs)) {
-      uzp.showNotification('Number of eppendorfs should be numerical.', 'error');
-      return;
-   }
-   else if(no_eppendorfs < 1) {
-      uzp.showNotification('Number of eppendorfs cannot be less than 1.', 'error');
-      return;
-   }
 
    // seems all is well, lets save the sample
    $.ajax({
       //array('plate45_id' => $result[0]['id'], 'drug' => $_POST['drug'], 'value' => $_POST['drug_value'], 'user' => $_POST['cur_user'])
-      type:"POST", url: "mod_ajax.php?page=step12&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample, no_eppendorfs: no_eppendorfs},
+      type:"POST", url: "mod_ajax.php?page=step12&do=save", async: false, dataType:'json', data: {cur_user: cur_user, sample: sample},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
             $("[name=sample]").focus().val('');
+            $("#eppendorf_label").html("");
             return;
          }
          else{
+            $("#eppendorf_label").html(sample + " eppendorf label => " + data.eppendorf);
             // we have saved the sample well... lets prepare for the next sample
             $("[name=sample]").focus().val('');
             var currentdate = new Date();
             var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
-            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ no_eppendorfs +"<br />");
+            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ data.eppendorf +"<br />");
          }
      }
   });

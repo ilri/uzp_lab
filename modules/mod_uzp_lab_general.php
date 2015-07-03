@@ -778,7 +778,6 @@ class Uzp extends DBase{
 
    private function plateToEppendorfHome(){
       $userCombo = $this->usersCombo();
-      $drugNameCombo = $this->drugNameCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -792,9 +791,9 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Plate 6 -> Eppendorf / DNA Extract (12)</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="no_eppendorfs"><label style="float: left;">Number of eppendorfs: </label>&nbsp;&nbsp;<input type="number" name="no_eppendorfs" class="input-small" style="height: 30px;"/></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
       <div class="center">
+         <div id="eppendorf_label"></div><br/>
          <input type="text" name="sample" />
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
@@ -837,12 +836,45 @@ class Uzp extends DBase{
       else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The sample '{$_POST['sample']}' is not in the database.")));
 
       // now add the association
-      for($index = 1; $index <= $_POST['no_eppendorfs']; $index++) {
-         $eppendorfNo = $_POST['sample']."-".$index;
-         $res = $this->Dbase->ExecuteQuery($insertQuery, array('plate6_id' => $result[0]['id'], 'eppendorf' => $eppendorfNo, 'user' => $_POST['cur_user']));
+      $plateId = $result[0]['id'];
+      $query = "select count(id) as number from dna_eppendorfs";
+      $result = $this->Dbase->ExecuteQuery($query);
+      
+      //get the number of eppendorfs in the database
+      $noEppendorfs = $result[0]['number'];
+      $uniqueLabelFound = false;
+      $eppendorfLabel = "";
+      while ($uniqueLabelFound == false) {
+         $eppendorfLabel = $this->getRandomEppendorfLabel($noEppendorfs);
+         $query = "select id from dna_eppendorfs where eppendorf=:eppendorf";
+         $res = $this->Dbase->ExecuteQuery($query, array("eppendorf" => $eppendorfLabel));
          if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         else if(count($res) == 0) {
+            $uniqueLabelFound = true;
+         }
       }
-      die(json_encode(array('error' => false, 'mssg' => 'Eppendorfs have been saved succesfully.')));
+      $res = $this->Dbase->ExecuteQuery($insertQuery, array("plate6_id" => $plateId, "eppendorf" => $eppendorfLabel, "user" => $_POST['cur_user']));
+      if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'Eppendorf saved succesfully.', 'eppendorf' => $eppendorfLabel)));
+   }
+   
+   private function getRandomEppendorfLabel($noEppendorfs) {
+      //use the number to get the range e.g if number is < 1000 then we are in the first range. We have 6 ranges with 4 elements each
+      //ranges are: 0-1000,1001-2000..5001-6000
+      $range = floor($noEppendorfs/1000);
+      //get the four indexes to be considered given the range. e.g if our range is 0 then the four possible values are 0,1,2,3
+      $possibleIndexs = array();
+      for($index = $range; $index < ($range + 4); $index++) {
+         $possibleIndexs[] = $index;
+      }
+      //select the lucky index from the list of four possible
+      $luckyIndex = $possibleIndexs[rand(0, 3)];
+      $alphabet = 'abcdefghijklmnopqrstuvwxyz';
+      $digits = '0123456789';
+      $firstCharacter = $alphabet[$luckyIndex];
+      $secondCharacter = $alphabet[rand(0, 23)];
+      $thirdCharacter = $digits[rand(0,9)];
+      return strtoupper($firstCharacter.$secondCharacter.$thirdCharacter);
    }
 
    private function dnaArchivingHome(){

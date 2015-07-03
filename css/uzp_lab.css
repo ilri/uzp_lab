@@ -68,3 +68,14 @@ input[type=text]{ height: 30px; }
 #plate_layout .empty{ background-color: #D8432E; }
 #plate_layout .occupied{ background-color: #009D59; }
 .test_oblabels{display: inline-block; width: 75px; text-align: left; margin-left: 5px;}
+#eppendorf_label{  
+  font-size: 18px;
+  background-color: rgb(73, 209, 120);
+  width: 350px;
+  height: 45;
+  margin: 15px;
+  vertical-align: middle;
+  display: inline-block;
+  text-align: center;
+  padding-top: 20px;
+}
