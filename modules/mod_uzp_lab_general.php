@@ -726,7 +726,7 @@ class Uzp extends DBase{
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="colony_format"><label style="float: left;">Colony format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="plate_format"><label style="float: left;">Plate 6 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">

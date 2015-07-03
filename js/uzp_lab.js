@@ -610,7 +610,7 @@ Uzp.prototype.saveAstResult = function(){
    var drugs = [];
    var drugIdRegex = /^drug_.+_val[0-9]{1}$/;
    var allGood = true;
-   $("input[type=number]").each(function(){
+   $("input[type=text]").each(function(){
       var inputId = $(this).attr('id');
       if(drugIdRegex.test(inputId) == true) {
          console.log("input with id = ",inputId," fits the regex");
@@ -669,6 +669,7 @@ Uzp.prototype.saveAstResult = function(){
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
+            $(":input").val('');
             $("[name=sample]").focus().val('');
             return;
          }
