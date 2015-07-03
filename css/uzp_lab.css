@@ -67,3 +67,4 @@ input[type=text]{ height: 30px; }
 #plate_layout .pos{float: left; border: 0.5px dotted black; margin: 1px; width: 50px; height: 50px; }
 #plate_layout .empty{ background-color: #D8432E; }
 #plate_layout .occupied{ background-color: #009D59; }
+.test_oblabels{display: inline-block; width: 75px; text-align: left; margin-left: 5px;}

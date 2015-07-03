@@ -453,9 +453,9 @@ class Uzp extends DBase{
 
       <div class="center">
          <div id="test_name"><label style="display: initial;">Test done: </label>&nbsp;&nbsp;<?php echo $testCombo; ?></div> <br />
-         <div id="res1"><label id="res1_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res1_select" name="res1_select"></select></div> <br />
-         <div id="res2"><label id="res2_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res2_select" name="res2_select"></select></div> <br />
-         <div id="res3"><label id="res3_label" style="display: initial;"></label>&nbsp;&nbsp;<select id="res3_select" name="res3_select"></select></div> <br />
+         <div id="res1" style='display: table; margin-left: 160px;'><label id="res1_label" style="display: inline-block;width: 150px;"></label></div> <br />
+         <div id="res2" style='display: table; margin-left: 160px;'><label id="res2_label" style="display: inline-block;width: 150px;"></label></div> <br />
+         <div id="res3" style='display: table; margin-left: 160px;'><label id="res3_label" style="display: inline-block;width: 150px;"></label></div> <br />
          <input type="text" name="sample" />
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />

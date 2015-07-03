@@ -43,6 +43,13 @@ Uzp.prototype.biochemTestLogic = function() {
    $("#res1").hide();
    $("#res2").hide();
    $("#res3").hide();
+   $("#res1").find('br').remove();
+   $("#res2").find('br').remove();
+   $("#res3").find('br').remove();
+   $("[name=res1_select]").remove();
+   $("[name=res2_select]").remove();
+   $("[name=res3_select]").remove();
+   $("[class=test_oblabels]").remove();
    if($("#testId").val() == "tsi") {
       /* Test 1: slant color
        * Test 2: butt color
@@ -50,20 +57,20 @@ Uzp.prototype.biochemTestLogic = function() {
        */
       $("#res1").show();
       $("#res1_label").html("Slant color");
-      $("#res1_select").html(uzp.createOptionList(["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
+      $("#res1").append(uzp.createOptionList("res1_select", ["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
       $("#res2").show();
       $("#res2_label").html("Butt color");
-      $("#res2_select").html(uzp.createOptionList(["Yellow", "Black", "Other"], ["yellow", "black", "other"]));
+      $("#res2").append(uzp.createOptionList("res2_select", ["Yellow", "Black", "Other"], ["yellow", "black", "other"]));
       $("#res3").show();
       $("#res3_label").html("Gas present");
-      $("#res3_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+      $("#res3").append(uzp.createOptionList("res3_select", ["Yes", "No"], ["yes", "no"]));
    }
    if($("#testId").val() == "urea") {
       /* Test 1: Color
        */
       $("#res1").show();
       $("#res1_label").html("Color");
-      $("#res1_select").html(uzp.createOptionList(["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
+      $("#res1").append(uzp.createOptionList("res1_select", ["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
    }
    if($("#testId").val() == "mio") {
       /* Test 1: Motile
@@ -71,10 +78,10 @@ Uzp.prototype.biochemTestLogic = function() {
        */
       $("#res1").show();
       $("#res1_label").html("Motile");
-      $("#res1_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+      $("#res1").append(uzp.createOptionList("res1_select", ["Yes", "No"], ["yes", "no"]));
       $("#res2").show();
       $("#res2_label").html("Color");
-      $("#res2_select").html(uzp.createOptionList(["Pink", "Not pink"], ["pink", "not_pink"]));
+      $("#res2").append(uzp.createOptionList("res2_select", ["Pink", "Not pink"], ["pink", "not_pink"]));
    }
    if($("#testId").val() == "citrate") {
       /* Test 1: Growth
@@ -82,20 +89,21 @@ Uzp.prototype.biochemTestLogic = function() {
        */
       $("#res1").show();
       $("#res1_label").html("Growth");
-      $("#res1_select").html(uzp.createOptionList(["Yes", "No"], ["yes", "no"]));
+      $("#res1").append(uzp.createOptionList("res1_select", ["Yes", "No"], ["yes", "no"]));
       $("#res2").show();
       $("#res2_label").html("Color");
-      $("#res2_select").html(uzp.createOptionList(["Green", "Not green"], ["green", "not_green"]));
+      $("#res2").append(uzp.createOptionList("res2_select", ["Green", "Not green"], ["green", "not_green"]));
    }
 };
 
-Uzp.prototype.createOptionList = function(optionLabels, optionValues) {
-   var html = "<option value=''></option>";
+Uzp.prototype.createOptionList = function(commonName, optionLabels, optionValues) {
+   var html = "<input type='radio' name='"+commonName+"' value='' style='display:none;' checked='checked' />";
    if(optionLabels.length == optionValues.length) {
       for(var index = 0; index < optionLabels.length; index++) {
-         html = html + "<option value='"+optionValues[index]+"'>"+optionLabels[index]+"</option>";
+         html = html + "<input type='radio' name='"+commonName+"' value='"+optionValues[index]+"' /><div class='test_oblabels'>"+optionLabels[index]+"</div>";
       }
    }
+   html = html + "<br />";
    return html;
 };
 
@@ -517,17 +525,26 @@ Uzp.prototype.saveBioChemResult = function(){
    
    //check if all the tests selected
    var testResults = [];
+   var radioResIndex = {};
    var allGood = true;
-   $("select").each(function(){
-      var selectId = $(this).attr('id');
+   $("input[type='radio']").each(function(){
+      var selectId = $(this).attr('name');
       var idRegex = /res[0-9]_select/;
       if(idRegex.test(selectId) == true) {
          //check if select is visible
          var idParts = selectId.split("_");
-         if($(this).is(":visible") && idParts.length == 2) {
+         if(idParts.length == 2) {
             var testName = $("#"+idParts[0]+"_label").html();
-            if($(this).val().length > 0) {
-               testResults[testResults.length] = {name:testName, result:$(this).val()};
+            var testIndex = -1;
+            if(typeof radioResIndex[selectId] == 'undefined') {
+               testIndex = testResults.length;
+               radioResIndex[selectId] = testIndex;
+            }
+            else {
+               testIndex = radioResIndex[selectId];
+            }
+            if($("input[name="+selectId+"]:checked").val().length > 0){
+               testResults[testIndex] = {name:testName, result:$("input[name="+selectId+"]:checked").val()};
             }
             else {
                uzp.showNotification('Please select a vaule for '+testName, 'error');
