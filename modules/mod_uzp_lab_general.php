@@ -951,15 +951,15 @@ class Uzp extends DBase{
       $userIds = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
       $html = "<div>";
       if(count($userVals) == count($userIds)) {
-         $bgColor = "yellow";
+         $bgColor = "rgb(230, 180, 127)";
          for($index = 0; $index < count($userIds); $index++) {
             if($index == ceil(count($userIds)/2)) {
                $html .= "</table>";
-               $bgColor = "green";
+               $bgColor = "rgb(230, 180, 127)";
             }
-            if($index == 0 || $index == ceil(count($userIds)/2)) $html .= "<table style='margin-right: 15px;display: inline-block; background-color: ".$bgColor.";'><tr><th>Drug Name</th><th>Value 1</th><th>Value 2</th></tr>";
+            if($index == 0 || $index == ceil(count($userIds)/2)) $html .= "<table style='margin-right: 15px;display: inline-block; background-color: ".$bgColor."; border: 15px solid ".$bgColor.";'><tr><th>Drug Name</th><th>Value 1</th><th>Value 2</th></tr>";
             
-            $html .= "<tr><td>".$userVals[$index]."</td><td><input type='number' class='input-small' name='drug_".$userIds[$index]."_val1' id='drug_".$userIds[$index]."_val1' /></td><td><input type='number' class='input-small' name='drug_".$userIds[$index]."_val2' id='drug_".$userIds[$index]."_val2' /></td></tr>";
+            $html .= "<tr><td>".$userVals[$index]."</td><td><input type='text' class='input-small' name='drug_".$userIds[$index]."_val1' id='drug_".$userIds[$index]."_val1' style='height:30px;' /></td><td><input type='text' class='input-small' name='drug_".$userIds[$index]."_val2' id='drug_".$userIds[$index]."_val2' style='height:30px;' /></td></tr>";
             
             if($index == (count($userIds) - 1)) $html .= "</table>";
          }
