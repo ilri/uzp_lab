@@ -142,6 +142,33 @@ class Uzp extends DBase{
          $this->logAccess();
          $this->homePage();
       }
+	  elseif(OPTIONS_REQUESTED_MODULE == 'dump') {
+         $this->dumpData();
+      }
+   }
+   
+   private function dumpData() {
+        if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
+		$date = new DateTime();
+		$filename = Config::$config['rootdir']."\downloads\uzp_99hh_".$date->format('Y-m-d_H-i-s').'.sql';
+		$zipName = $filename.".zip";
+		$command = Config::$config['mysqldump']." -u ".Config::$config['user']." -p".Config::$config['pass']." ".Config::$config['dbase'].' > '.$filename;
+		shell_exec($command);
+		$zip = new ZipArchive();
+		$zip->open($zipName, ZipArchive::CREATE);
+		$zip->addFile($filename, basename($filename));
+		$zip->close();
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/zip');
+		header("Content-Disposition: attachment; filename=".basename($zipName));
+		//header('Content-Transfer-Encoding: binary');
+		//header('Pragma: public');
+		header('Content-Length: '.filesize($zipName));
+		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+		ob_clean();
+		flush();
+		readfile($zipName);
+		return;
    }
 
    /**
@@ -169,6 +196,7 @@ class Uzp extends DBase{
          <li><a href="?page=step10">Plates 4,5 -> AST Result Reading (10)</a></li>
          <li><a href="?page=step11">Archival -> Plate 6 (Regrowing) (11)</a></li>
          <li><a href="?page=step12">Plate 6 -> Eppendorf / DNA Extract (12)</a></li>
+         <li><a href="?page=dump">Backup database</a></li>
          <!--li><a href="?page=step13">Eppendorf / DNA Extract -> Archive (13)</a></li-->
       </ul>
    </div>
@@ -726,7 +754,7 @@ class Uzp extends DBase{
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="colony_format"><label style="float: left;">Colony format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="plate_format"><label style="float: left;">Plate 6 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
