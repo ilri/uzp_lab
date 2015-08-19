@@ -50,7 +50,7 @@ Uzp.prototype.biochemTestLogic = function() {
    $("[name=res2_select]").remove();
    $("[name=res3_select]").remove();
    $("[class=test_oblabels]").remove();
-   if($("#testId").val() == "tsi") {
+   if($("#testId").val() === "tsi") {
       /* Test 1: slant color
        * Test 2: butt color
        * Test 3: gas present
@@ -65,14 +65,14 @@ Uzp.prototype.biochemTestLogic = function() {
       $("#res3_label").html("Gas present");
       $("#res3").append(uzp.createOptionList("res3_select", ["Yes", "No"], ["yes", "no"]));
    }
-   if($("#testId").val() == "urea") {
+   if($("#testId").val() === "urea") {
       /* Test 1: Color
        */
       $("#res1").show();
       $("#res1_label").html("Color");
       $("#res1").append(uzp.createOptionList("res1_select", ["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
    }
-   if($("#testId").val() == "mio") {
+   if($("#testId").val() === "mio") {
       /* Test 1: Motile
        * Test 2: Color
        */
@@ -83,7 +83,7 @@ Uzp.prototype.biochemTestLogic = function() {
       $("#res2_label").html("Color");
       $("#res2").append(uzp.createOptionList("res2_select", ["Pink", "Not pink"], ["pink", "not_pink"]));
    }
-   if($("#testId").val() == "citrate") {
+   if($("#testId").val() === "citrate") {
       /* Test 1: Growth
        * Test 2: Color
        */
@@ -98,7 +98,7 @@ Uzp.prototype.biochemTestLogic = function() {
 
 Uzp.prototype.createOptionList = function(commonName, optionLabels, optionValues) {
    var html = "<input type='radio' name='"+commonName+"' value='' style='display:none;' checked='checked' />";
-   if(optionLabels.length == optionValues.length) {
+   if(optionLabels.length === optionValues.length) {
       for(var index = 0; index < optionLabels.length; index++) {
          html = html + "<input type='radio' name='"+commonName+"' value='"+optionValues[index]+"' /><div class='test_oblabels'>"+optionLabels[index]+"</div>";
       }
@@ -141,7 +141,7 @@ Uzp.prototype.saveReceivedSample = function(){
 
    // seems all is well, lets save the sample
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page=step1&do=save", async: false, dataType:'json', data: {format: format, sample: sample, cur_user: cur_user},
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {format: format, sample: sample, cur_user: cur_user, module: uzp_lab.module },
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
@@ -241,6 +241,38 @@ Uzp.prototype.receiveSampleKeypress = function(event){
             $(this).next().focus();
          }
       }
+      else if(uzp_lab.module === 'campy_step1') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveReceivedSample();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'campy_step2') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveBrothSample();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'campy_step3') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.savePlate3();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'campy_step4') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.savePlate3to45();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
 	}
 };
 
@@ -296,12 +328,13 @@ Uzp.prototype.saveBrothSample = function(){
       return;
    }
    if(broth_format === '' || broth_format === undefined){
+      var mssg = (uzp_lab.module === 'campy_step1') ? 'Please scan a sample barcode for the falcon tubes or cryo vials. It should be something like \'BSR010959\'' : 'Please scan a sample barcode for the broth. It should be something like \'BSR010959\'';
       uzp.showNotification('Please scan a sample barcode for the broth. It should be something like \'BSR010959\'', 'error');
       $("[name=sample_format]").focus();
       return;
    }
    if(sample_format === '' || sample_format === undefined){
-      uzp.showNotification('Please scan a sample barcode for the field sample. It should be something like \'AVAQ70919\'.', 'error');
+      uzp.showNotification('Please scan a sample barcode for the field sample (or bootsock). It should be something like \'AVAQ70919\'.', 'error');
       $("[name=sample_format]").focus();
       return;
    }
@@ -336,7 +369,7 @@ Uzp.prototype.saveBrothSample = function(){
 
    // seems all is well, lets save the sample
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page=step2&do=save", async: false, dataType:'json', data: {field_sample: uzp.prevSample, broth_sample: uzp.curSample, cur_user: cur_user},
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {field_sample: uzp.prevSample, broth_sample: uzp.curSample, cur_user: cur_user},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
@@ -522,7 +555,7 @@ Uzp.prototype.saveBioChemResult = function(){
       uzp.showNotification('Please select the test result.', 'error');
       return;
    }
-   
+
    //check if all the tests selected
    var testResults = [];
    var radioResIndex = {};
@@ -605,7 +638,7 @@ Uzp.prototype.saveAstResult = function(){
       uzp.showNotification('Please select the test result.', 'error');
       return;
    }
-   
+
    //check to see if all the drugs are entered
    var drugs = [];
    var drugIdRegex = /^drug_.+_val[0-9]{1}$/;
@@ -783,7 +816,7 @@ Uzp.prototype.saveColonies = function(){
       if(uzp.parentSample !== undefined && uzp.colonies.length !== 0){
          // lets save this association
          $.ajax({
-            type:"POST", url: "mod_ajax.php?page=step4&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
+            type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
             success: function (data) {
                if(data.error === true){
                   uzp.showNotification(data.mssg, 'error');
@@ -989,7 +1022,7 @@ Uzp.prototype.savePlate3to45 = function(){
       if(uzp.parentSample !== undefined && uzp.colonies.length !== 0){
          // lets save this association
          $.ajax({
-            type:"POST", url: "mod_ajax.php?page=step9&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
+            type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
             success: function (data) {
                if(data.error === true){
                   uzp.showNotification(data.mssg, 'error');
@@ -1321,7 +1354,7 @@ Uzp.prototype.savePlate3 = function(){
 
    // seems all is well, lets save the sample
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page=step8&do=save", async: false, dataType:'json', data: {plate_format: b_regex, colony_format: s_regex, field_sample: uzp.prevSample, broth_sample: uzp.curSample, cur_user: cur_user},
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate_format: b_regex, colony_format: s_regex, field_sample: uzp.prevSample, broth_sample: uzp.curSample, cur_user: cur_user},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');

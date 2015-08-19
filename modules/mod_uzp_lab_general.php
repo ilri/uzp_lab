@@ -66,15 +66,6 @@ class Uzp extends DBase{
          $this->whoisme = "{$_SESSION['surname']} {$_SESSION['onames']}, {$_SESSION['user_level']}";
       }
 
-      if(!Config::$downloadFile && ($this->Dbase->session['error'] || $this->Dbase->session['timeout'])){
-         if(OPTIONS_REQUEST_TYPE == 'normal'){
-            $this->LoginPage($this->Dbase->session['message'], $_SESSION['username']);
-            return;
-         }
-         elseif(OPTIONS_REQUEST_TYPE == 'ajax') die('-1' . $this->Dbase->session['message']);
-      }
-
-
       if(OPTIONS_REQUESTED_MODULE == '') $this->homePage();
       elseif(OPTIONS_REQUESTED_MODULE == 'step1'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->receiveSamples();
@@ -132,6 +123,27 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->dnaArchivingHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->dnaArchivingSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyReceiptHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyReceiptSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step2'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalconFreezingHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalconFreezingSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaGrowthHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaGrowthSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step5'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColoniesHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->coloniesStorageSave();
+      }
+
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -146,7 +158,7 @@ class Uzp extends DBase{
          $this->dumpData();
       }
    }
-   
+
    private function dumpData() {
         if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
 		$date = new DateTime();
@@ -196,6 +208,13 @@ class Uzp extends DBase{
          <li><a href="?page=step10">Plates 4,5 -> AST Result Reading (10)</a></li>
          <li><a href="?page=step11">Archival -> Plate 6 (Regrowing) (11)</a></li>
          <li><a href="?page=step12">Plate 6 -> Eppendorf / DNA Extract (12)</a></li>
+         <div><br /><b>Campylobacter Lab Modules</b></div>
+         <li><a href="?page=campy_step1">Receive Bootsocks</a></li>
+         <li><a href="?page=campy_step2">Bootsocks to Falcon and cryo tubes</a></li>
+         <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
+         <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
+         <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
+         <div><br /><b>Miscellaneous</b></div>
          <li><a href="?page=dump">Backup database</a></li>
          <!--li><a href="?page=step13">Eppendorf / DNA Extract -> Archive (13)</a></li-->
       </ul>
@@ -249,6 +268,9 @@ class Uzp extends DBase{
 <?php
    }
 
+   /**
+    * Save the received sample
+    */
    private function receiveSamplesSave(){
       // time to save the received sample
       $query = 'insert into received_samples(sample, user) values(:sample, :user)';
@@ -484,7 +506,7 @@ class Uzp extends DBase{
          <div id="res1" style='display: table; margin-left: 160px;'><label id="res1_label" style="display: inline-block;width: 150px;"></label></div> <br />
          <div id="res2" style='display: table; margin-left: 160px;'><label id="res2_label" style="display: inline-block;width: 150px;"></label></div> <br />
          <div id="res3" style='display: table; margin-left: 160px;'><label id="res3_label" style="display: inline-block;width: 150px;"></label></div> <br />
-         
+
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
          </div>
@@ -867,7 +889,7 @@ class Uzp extends DBase{
       $plateId = $result[0]['id'];
       $query = "select count(id) as number from dna_eppendorfs";
       $result = $this->Dbase->ExecuteQuery($query);
-      
+
       //get the number of eppendorfs in the database
       $noEppendorfs = $result[0]['number'];
       $uniqueLabelFound = false;
@@ -885,7 +907,7 @@ class Uzp extends DBase{
       if($res == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'Eppendorf saved succesfully.', 'eppendorf' => $eppendorfLabel)));
    }
-   
+
    private function getRandomEppendorfLabel($noEppendorfs) {
       //use the number to get the range e.g if number is < 1000 then we are in the first range. We have 6 ranges with 4 elements each
       //ranges are: 0-1000,1001-2000..5001-6000
@@ -1003,7 +1025,7 @@ class Uzp extends DBase{
       $userCombo = GeneralTasks::PopulateCombo($settings);
       return $userCombo;
    }
-   
+
    private function drugNameTable(){
       $userVals = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
       $userIds = array('AMP10', 'AMC30', 'CAZ30', 'CRO30', 'AZT30', 'CTX30', 'FOX30', 'C30', 'CIP5', 'CN10', 'NA30', 'S10', 'FEP30', 'CPD10', 'CTX30', 'TRIM5', 'SUL25', 'TET30');
@@ -1016,16 +1038,16 @@ class Uzp extends DBase{
                $bgColor = "rgb(230, 180, 127)";
             }
             if($index == 0 || $index == ceil(count($userIds)/2)) $html .= "<table style='margin-right: 15px;display: inline-block; background-color: ".$bgColor."; border: 15px solid ".$bgColor.";'><tr><th>Drug Name</th><th>Value 1</th><th>Value 2</th></tr>";
-            
+
             $html .= "<tr><td>".$userVals[$index]."</td><td><input type='text' class='input-small' name='drug_".$userIds[$index]."_val1' id='drug_".$userIds[$index]."_val1' style='height:30px;' /></td><td><input type='text' class='input-small' name='drug_".$userIds[$index]."_val2' id='drug_".$userIds[$index]."_val2' style='height:30px;' /></td></tr>";
-            
+
             if($index == (count($userIds) - 1)) $html .= "</table>";
          }
       }
       $html .= "</div>";
       return $html;
    }
-   
+
    private function mcConkyPlateHome(){
       $userCombo = $this->usersCombo();
 
@@ -1097,7 +1119,7 @@ class Uzp extends DBase{
       }
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    /*
     * Creates a home page for the colonies and plate association
     */
@@ -1175,7 +1197,7 @@ class Uzp extends DBase{
       $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    /**
     * Create the home page for saving colonies in boxes
     */
@@ -1264,6 +1286,324 @@ class Uzp extends DBase{
          else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       }
       else die(json_encode(array('error' => false, 'mssg' => 'The colony storage has been saved succesfully.')));
+   }
+
+   /**
+    * Create a home page for receiving the bootsock
+    */
+   private function campyReceiptHome(){
+      $addInfo = ($addInfo != '') ? "<div id='addinfo'>$addInfo</div>" : '';
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="receive_samples">
+   <h3 class="center" id="home_title">Log the bootsock received from the field</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="sample_format"><label style="float: left;">Bootsock Barcode format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" value="AVAQ63847" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <input type="text" name="sample" />
+      <div>
+         <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+      </div>
+   </div>
+   <div class="received"><div class="saved">Received bootsocks appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveReceivedSample).jqxButton({ width: '150'});
+
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves the received sample in a bootsock
+    */
+   private function campyReceiptSave(){
+      // time to save the received sample
+      $query = 'insert into received_bootsocks(sample, user) values(:sample, :user)';
+      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user']);
+
+      $result = $this->Dbase->ExecuteQuery($query, $vals);
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The sample has been saved succesfully.')));
+   }
+
+   /**
+    * Creates a home page for saving bootsock to a falcon tube and the cryo vials
+    */
+   private function campyFalconFreezingHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<!-- So yes its a different module, but the functionality is just the same. I will not bother changing the HTML placeholders -->
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Linking a field bootsock to falcon tubes and cryo vials</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="sample_format"><label style="float: left;">Bootsock Sample format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="broth_format"><label style="float: left;">Falcon tube/Freezing Samples format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Falcon tubes and vials appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveBrothSample).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the bootsoc and the falcon tubes/cryo vials
+    */
+   private function campyFalconFreezingSave(){
+      /**
+       * check whether the bootsoc is in the database
+       * if it is in the database, save the association
+       */
+      $checkQuery = 'select id from received_bootsocks where sample = :sample';
+      $insertQuery = 'insert into bootsock_assoc(bootsock_id, daughter_sample, user) values(:bootsock_id, :daughter_sample, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The field sample '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'daughter_sample' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
+    * mccda plate
+    */
+   private function campyMccdaHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<!-- We are re-using the broth template. So no changing things a lot -->
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Loading broth from falcon tube to a plate (Plate 1)</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="colony_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="BSR010959" /></div>
+      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00043" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked samples appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.savePlate3).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a new association of the falcon tubes and the mccda plates
+    */
+   private function campyMccdaSave(){
+      /**
+       * check whether the falcon sample is in the database
+       * if it is in the database, save the association of the falcon tube and the plate
+       */
+      $checkQuery = 'select id from bootsock_assoc where daughter_sample = :sample';
+      $insertQuery = 'insert into mccda_assoc(falcon_id, plate1_barcode, user) values(:bootsock_id, :plate1_barcode, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'plate1_barcode' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
+      if($result == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   private function campyMccdaGrowthHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+    <!-- Using the colonies page for this stage -->
+<div id="colonies">
+   <h3 class="center" id="home_title">MCCDA Plate -> Aerobic and Micro-aerobic Plates</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="plate_format"><label style="float: left;">MCCDA Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00045" /></div>
+      <div id="media_format"><label style="float: left;">Aerobic and Micro-aerobic Plates format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ64156" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <label>Scanned colonies</label><div id="scanned_colonies" class="center"></div>
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Aerobic and Micro-aerobic plates appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveColonies).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   uzp.mediumBarcodeList = [];
+   uzp.plateSample = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   private function campyMccdaGrowthSave(){
+      /**
+       * check whether the plate is in the database
+       * if it is in the database, save the plate and its associated colonies
+       */
+      $checkQuery = 'select id from mccda_assoc where plate1_barcode = :plate';
+      $insertQuery = 'insert into mccda_growth(mccda_plate_id, am_plate, user) values(:mccda_plate_id, :am_plate, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['plate']}' is not in the database.")));
+
+      // now add the association
+      $this->Dbase->StartTrans();
+      foreach($_POST['colonies'] as $colony){
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('mccda_plate_id' => $result[0]['id'], 'am_plate' => $colony, 'user' => $_POST['cur_user']));
+         if($res == 1){
+            $this->Dbase->RollBackTrans();
+            if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+            else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         }
+      }
+      $this->Dbase->CommitTrans();
+      die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
+    * Create the home page for saving colonies in boxes
+    */
+   private function campyMicroaerobicColoniesHome(){
+      $userCombo = $this->usersCombo();
+      $layout = $this->storageBoxLayout(10, 10);
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="colonies_storage">
+   <h3 class="center" id="home_title">Logging all microaerobic colonies</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
+      <div id="plate_format"><label style="float: left;">Storage Box: </label>&nbsp;&nbsp;<input type="text" name="storage_box" class="input-small" value="AVMS00050" /></div>
+      <div id="colony_pos"><label style="float: left;">Position: </label>&nbsp;&nbsp;<input type="text" name="colony_pos" class="input-small" value="1" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+   </div>
+   <div class="left">
+      <input type="text" name="sample" />
+      <div>
+         <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+      </div>
+   </div>
+   <div id="plate_layout"><?php echo $layout; ?></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveColonies).jqxButton({ width: '150'});
+
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
    }
 }
 ?>

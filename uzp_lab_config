@@ -58,8 +58,8 @@ class Config extends GeneralTasks{
     */
    static public $config = array(
       'user' => 'root',                      // username to use to connect to the dbase
-      'pass' => 'root',                      // password of the defined user
-      'dbase' => 'azizi_uzp_99h_lab',             // database name
+      'pass' => 'admin',                      // password of the defined user
+      'dbase' => 'uzp_99h_lab',             // database name
       'session_dbase' => 'azizi_uzp_99h_lab',    // database name
       'dbloc' => 'localhost',                // database location
       'mysqldump' => 'C:\xampp\mysql\bin\mysqldump.exe',
