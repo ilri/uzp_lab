@@ -128,8 +128,8 @@ class Uzp extends DBase{
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyReceiptSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step2'){
-         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalconFreezingHome();
-         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalconFreezingSave();
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalconHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalconSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaHome();
@@ -1346,7 +1346,7 @@ class Uzp extends DBase{
    /**
     * Creates a home page for saving bootsock to a falcon tube and the cryo vials
     */
-   private function campyFalconFreezingHome(){
+   private function campyFalconHome(){
       $userCombo = $this->usersCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
@@ -1359,11 +1359,11 @@ class Uzp extends DBase{
 
 <!-- So yes its a different module, but the functionality is just the same. I will not bother changing the HTML placeholders -->
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Linking a field bootsock to falcon tubes and cryo vials</h3>
+   <h3 class="center" id="home_title">Linking a bootsock to falcon tubes</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="sample_format"><label style="float: left;">Bootsock Sample format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="broth_format"><label style="float: left;">Falcon tube/Freezing Samples format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
+      <div id="sample_format"><label style="float: left;">Bootsock format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="broth_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1373,7 +1373,7 @@ class Uzp extends DBase{
          </div>
       </div>
    </div>
-   <div class="received"><div class="saved">Falcon tubes and vials appear here</div></div>
+   <div class="received"><div class="saved">Falcon tubes appear here</div></div>
 </div>
 <div id="notification_box"><div id="msg"></div></div>
 <script>
@@ -1395,7 +1395,7 @@ class Uzp extends DBase{
    /**
     * Saves a new association of the bootsoc and the falcon tubes/cryo vials
     */
-   private function campyFalconFreezingSave(){
+   private function campyFalconSave(){
       /**
        * check whether the bootsoc is in the database
        * if it is in the database, save the association
