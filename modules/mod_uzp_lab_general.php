@@ -992,8 +992,8 @@ class Uzp extends DBase{
     * @return  string   Returns a HTML string which creates the user dropdown
     */
    private function usersCombo(){
-      $userVals = array('John Kiiru');
-      $userIds = array('kiiru_john');
+      $userVals = array('John Kiiru', 'Benson Chenge', 'Samuel Njoroge','Hannah Kariuki');
+      $userIds = array('kiiru_john', 'benson_chege', 'samuel_njoroge', 'hannah_kariuki');
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'users', 'id' => 'usersId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
