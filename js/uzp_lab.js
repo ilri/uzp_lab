@@ -789,7 +789,7 @@ Uzp.prototype.resetMediumSampleList = function() {
  */
 Uzp.prototype.saveColonies = function(){
    // check for the pre-requisites
-   var colonies_format = $('[name=colonies_format]').val(), plate_format = $('[name=plate_format]').val();
+   var colonies_format = $('[name=colonies_format]').val(), plate_format = $('[name=plate_format]').val(), no_qtr_colonies = $("[name=no_qtr_colonies]").val();
    var sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
 
    if(sample === ''){
@@ -812,6 +812,16 @@ Uzp.prototype.saveColonies = function(){
       $("[name=sample]").focus().val('');
       return;
    }
+   if(no_qtr_colonies == '' || no_qtr_colonies === undefined) {
+      uzp.showNotification('Enter the number of colonies in one quarter', 'error');
+      $("[name=no_qtr_colonies]").focus();
+      return;
+   }
+   else if($.isNumeric(no_qtr_colonies) == false) {
+      uzp.showNotification('Number of colonies should be numerical', 'error');
+      $("[name=no_qtr_colonies]").focus();
+      return;
+   }
 
    //lets validate the samples
    var p_regex = uzp.createSampleRegex(plate_format);
@@ -822,7 +832,7 @@ Uzp.prototype.saveColonies = function(){
       if(uzp.parentSample !== undefined && uzp.colonies.length !== 0){
          // lets save this association
          $.ajax({
-            type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
+            type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user, no_qtr_colonies: no_qtr_colonies},
             success: function (data) {
                if(data.error === true){
                   uzp.showNotification(data.mssg, 'error');
@@ -835,6 +845,7 @@ Uzp.prototype.saveColonies = function(){
                else{
                   // we have saved the sample well...
                   $("[name=sample]").focus().val('');
+                  $("[name=no_qtr_colonies]").val('');
                   var currentdate = new Date();
                   var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
                   $.each(uzp.colonies, function(i, that){

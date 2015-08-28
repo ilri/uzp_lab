@@ -63,7 +63,8 @@ class Config extends GeneralTasks{
       'session_dbase' => 'azizi_uzp_99h_lab',    // database name
       'dbloc' => 'localhost',                // database location
       'mysqldump' => 'C:\xampp\mysql\bin\mysqldump.exe',
-      'rootdir' => 'C:\xampp\htdocs\uzp_lab'
+      'rootdir' => 'C:\xampp\htdocs\uzp_lab',
+      'site' => 'KEMRI'
    );
 
    /**

@@ -197,13 +197,13 @@ class Uzp extends DBase{
       <ul>
          <li><a href="?page=step1">Receive field samples (1)</a></li>
          <li><a href="?page=step2">Broth Enrichment (2)</a></li>
-         <li><a href="?page=step3">McConky Plate (3)</a></li>
+         <li><a href="?page=step3">Primary Plating (3)</a></li>
          <li><a href="?page=step4">Colonies (4)</a></li>
          <li><a href="?page=step5.1">Colonies Archival (5.1)</a></li>
-         <li><a href="?page=step5">Archival -> Plate (5)</a></li>
+         <li><a href="?page=step5">Archival -> Plate 2 (5)</a></li>
          <li><a href="?page=step6">Biochemical Test Prep (6)</a></li>
          <li><a href="?page=step7">Biochemical Test Result (7)</a></li>
-         <li><a href="?page=step8">Archival -> Plate3 (8)</a></li>
+         <li><a href="?page=step8">Archival -> Plate 3 (8)</a></li>
          <li><a href="?page=step9">Plate3 -> Plates 4,5 (9)</a></li>
          <li><a href="?page=step10">Plates 4,5 -> AST Result Reading (10)</a></li>
          <li><a href="?page=step11">Archival -> Plate 6 (Regrowing) (11)</a></li>
@@ -994,8 +994,14 @@ class Uzp extends DBase{
     * @return  string   Returns a HTML string which creates the user dropdown
     */
    private function usersCombo(){
-      $userVals = array('John Kiiru');
-      $userIds = array('kiiru_john');
+      if(Config::$config['site'] == "KEMRI") {
+         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi');
+         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi');
+      }
+      else if(Config::$config['site'] == 'UoN') {
+         $userVals = array('John Kiiru', 'Johnstone Masinde', 'Lucy Gitonga', 'Beatrice Wandia', 'Caroline Kimunye');
+         $userIds = array('kiiru_john', 'Johnstone Masinde', 'Lucy Gitonga', 'Beatrice Wandia', 'Caroline Kimunye');
+      }
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'users', 'id' => 'usersId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
@@ -1062,8 +1068,8 @@ class Uzp extends DBase{
    private function mcConkyPlateHome(){
       $userCombo = $this->usersCombo();
 
-      $mediaVals = array('Sample Media');
-      $mediaIds = array('sample_media');
+      $mediaVals = array('McConky', 'EMBA');
+      $mediaIds = array('McConky', 'EMBA');
       $settings = array('items' => $mediaVals, 'values' => $mediaIds, 'firstValue' => 'Select One', 'name' => 'media', 'id' => 'mediaId', 'class' => 'input-medium');
       $mediaCombo = GeneralTasks::PopulateCombo($settings);
 ?>
@@ -1076,11 +1082,11 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
 <div id="mcconky_plate">
-   <h3 class="center" id="home_title">Loading the broth samples on the McConky plate</h3>
+   <h3 class="center" id="home_title">Loading the broth samples on the primary plate</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="broth_format"><label style="float: left;">Broth format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
-      <div id="mcconky_format"><label style="float: left;">McConky Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="mcconky_format"><label style="float: left;">Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
       <div id="media_used"><label style="float: left;">Media Used: </label>&nbsp;&nbsp;<?php echo $mediaCombo; ?></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
@@ -1146,11 +1152,12 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
 <div id="colonies">
-   <h3 class="center" id="home_title">Creating colonies for archival from the McConky plate</h3>
+   <h3 class="center" id="home_title">Creating colonies for archival from the plate</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="mcconky_format"><label style="float: left;">McConky Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
       <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
+      <div id="no_qtr_colonies"><label style="float: left;">No. Colonies in quarter: </label>&nbsp;&nbsp;<input type="number" name="no_qtr_colonies" class="input-small" style="height: 30px;" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1198,6 +1205,7 @@ class Uzp extends DBase{
       // now add the association
       $this->Dbase->StartTrans();
       foreach($_POST['colonies'] as $colony){
+         $this->Dbase->ExecuteQuery("update mcconky_assoc set no_qtr_colonies = :no_qtr_colonies where id = :id", array("no_qtr_colonies" => $_POST['no_qtr_colonies'], "id" => $result[0]['id']));
          $res = $this->Dbase->ExecuteQuery($insertQuery, array('mcconky_plate_id' => $result[0]['id'], 'colony' => $colony, 'user' => $_POST['cur_user']));
          if($res == 1){
             $this->Dbase->RollBackTrans();
