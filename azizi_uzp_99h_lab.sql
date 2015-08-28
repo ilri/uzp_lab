@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 28, 2015 at 08:24 AM
+-- Generation Time: Aug 28, 2015 at 10:31 AM
 -- Server version: 5.6.24
 -- PHP Version: 5.6.11
 
@@ -68,10 +68,24 @@ CREATE TABLE IF NOT EXISTS `biochemical_test_results` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bootsock_assoc`
+-- Table structure for table `broth_assoc`
 --
 
-CREATE TABLE IF NOT EXISTS `bootsock_assoc` (
+CREATE TABLE IF NOT EXISTS `broth_assoc` (
+  `id` int(11) NOT NULL,
+  `field_sample_id` int(11) NOT NULL,
+  `broth_sample` varchar(9) NOT NULL,
+  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `user` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campy_bootsock_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `campy_bootsock_assoc` (
   `id` int(11) NOT NULL,
   `bootsock_id` int(11) NOT NULL,
   `daughter_sample` varchar(9) NOT NULL,
@@ -82,14 +96,72 @@ CREATE TABLE IF NOT EXISTS `bootsock_assoc` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `broth_assoc`
+-- Table structure for table `campy_colonies`
 --
 
-CREATE TABLE IF NOT EXISTS `broth_assoc` (
+CREATE TABLE IF NOT EXISTS `campy_colonies` (
   `id` int(11) NOT NULL,
-  `field_sample_id` int(11) NOT NULL,
-  `broth_sample` varchar(9) NOT NULL,
+  `colony` varchar(9) NOT NULL,
+  `datetime_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user` varchar(20) NOT NULL,
+  `box` varchar(10) DEFAULT NULL,
+  `position_in_box` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campy_cryovials`
+--
+
+CREATE TABLE IF NOT EXISTS `campy_cryovials` (
+  `id` int(11) NOT NULL,
+  `falcon_id` int(11) NOT NULL,
+  `cryovial` varchar(9) NOT NULL,
+  `datetime_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user` varchar(20) NOT NULL,
+  `box` varchar(10) DEFAULT NULL,
+  `position_in_box` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campy_mccda_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `campy_mccda_assoc` (
+  `id` int(11) NOT NULL,
+  `falcon_id` int(11) NOT NULL,
+  `plate1_barcode` varchar(9) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `user` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campy_mccda_growth`
+--
+
+CREATE TABLE IF NOT EXISTS `campy_mccda_growth` (
+  `id` int(11) NOT NULL,
+  `mccda_plate_id` int(11) NOT NULL,
+  `am_plate` varchar(9) NOT NULL,
+  `datetime_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campy_received_bootsocks`
+--
+
+CREATE TABLE IF NOT EXISTS `campy_received_bootsocks` (
+  `id` int(11) NOT NULL,
+  `sample` varchar(9) NOT NULL,
+  `datetime_received` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -123,34 +195,6 @@ CREATE TABLE IF NOT EXISTS `dna_eppendorfs` (
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `dna` varchar(9) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `mccda_assoc`
---
-
-CREATE TABLE IF NOT EXISTS `mccda_assoc` (
-  `id` int(11) NOT NULL,
-  `falcon_id` int(11) NOT NULL,
-  `plate1_barcode` varchar(9) NOT NULL,
-  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `user` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `mccda_growth`
---
-
-CREATE TABLE IF NOT EXISTS `mccda_growth` (
-  `id` int(11) NOT NULL,
-  `mccda_plate_id` int(11) NOT NULL,
-  `am_plate` varchar(9) NOT NULL,
-  `datetime_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -229,19 +273,6 @@ CREATE TABLE IF NOT EXISTS `plate45` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `received_bootsocks`
---
-
-CREATE TABLE IF NOT EXISTS `received_bootsocks` (
-  `id` int(11) NOT NULL,
-  `sample` varchar(9) NOT NULL,
-  `datetime_received` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `received_samples`
 --
 
@@ -293,20 +324,61 @@ ALTER TABLE `biochemical_test_results`
   ADD UNIQUE KEY `unique_biochemical_test` (`media_id`,`test`,`observ_type`);
 
 --
--- Indexes for table `bootsock_assoc`
---
-ALTER TABLE `bootsock_assoc`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `broth_sample` (`daughter_sample`),
-  ADD KEY `field_sample_id` (`bootsock_id`,`user`);
-
---
 -- Indexes for table `broth_assoc`
 --
 ALTER TABLE `broth_assoc`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `broth_sample` (`broth_sample`),
   ADD KEY `field_sample_id` (`field_sample_id`,`user`);
+
+--
+-- Indexes for table `campy_bootsock_assoc`
+--
+ALTER TABLE `campy_bootsock_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `broth_sample` (`daughter_sample`),
+  ADD KEY `field_sample_id` (`bootsock_id`,`user`);
+
+--
+-- Indexes for table `campy_colonies`
+--
+ALTER TABLE `campy_colonies`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `colony` (`colony`);
+
+--
+-- Indexes for table `campy_cryovials`
+--
+ALTER TABLE `campy_cryovials`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `colony` (`cryovial`),
+  ADD UNIQUE KEY `box` (`box`,`position_in_box`),
+  ADD KEY `falcon_id` (`falcon_id`);
+
+--
+-- Indexes for table `campy_mccda_assoc`
+--
+ALTER TABLE `campy_mccda_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `broth_sample` (`plate1_barcode`),
+  ADD KEY `field_sample_id` (`falcon_id`,`user`);
+
+--
+-- Indexes for table `campy_mccda_growth`
+--
+ALTER TABLE `campy_mccda_growth`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `colony` (`am_plate`),
+  ADD UNIQUE KEY `mccda_plate_id` (`mccda_plate_id`,`am_plate`),
+  ADD KEY `mcconky_plate_id` (`mccda_plate_id`);
+
+--
+-- Indexes for table `campy_received_bootsocks`
+--
+ALTER TABLE `campy_received_bootsocks`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `sample` (`sample`),
+  ADD KEY `user` (`user`);
 
 --
 -- Indexes for table `colonies`
@@ -324,22 +396,6 @@ ALTER TABLE `dna_eppendorfs`
   ADD UNIQUE KEY `plate` (`eppendorf`),
   ADD UNIQUE KEY `plate6_id` (`plate6_id`),
   ADD UNIQUE KEY `dna` (`dna`);
-
---
--- Indexes for table `mccda_assoc`
---
-ALTER TABLE `mccda_assoc`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `broth_sample` (`plate1_barcode`),
-  ADD KEY `field_sample_id` (`falcon_id`,`user`);
-
---
--- Indexes for table `mccda_growth`
---
-ALTER TABLE `mccda_growth`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `colony` (`am_plate`),
-  ADD KEY `mcconky_plate_id` (`mccda_plate_id`);
 
 --
 -- Indexes for table `mcconky_assoc`
@@ -383,14 +439,6 @@ ALTER TABLE `plate45`
   ADD UNIQUE KEY `plate_number` (`plate3_id`,`number`);
 
 --
--- Indexes for table `received_bootsocks`
---
-ALTER TABLE `received_bootsocks`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sample` (`sample`),
-  ADD KEY `user` (`user`);
-
---
 -- Indexes for table `received_samples`
 --
 ALTER TABLE `received_samples`
@@ -425,14 +473,39 @@ ALTER TABLE `biochemical_test`
 ALTER TABLE `biochemical_test_results`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `bootsock_assoc`
---
-ALTER TABLE `bootsock_assoc`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
 -- AUTO_INCREMENT for table `broth_assoc`
 --
 ALTER TABLE `broth_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_bootsock_assoc`
+--
+ALTER TABLE `campy_bootsock_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_colonies`
+--
+ALTER TABLE `campy_colonies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_cryovials`
+--
+ALTER TABLE `campy_cryovials`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_mccda_assoc`
+--
+ALTER TABLE `campy_mccda_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_mccda_growth`
+--
+ALTER TABLE `campy_mccda_growth`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `campy_received_bootsocks`
+--
+ALTER TABLE `campy_received_bootsocks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `colonies`
@@ -443,16 +516,6 @@ ALTER TABLE `colonies`
 -- AUTO_INCREMENT for table `dna_eppendorfs`
 --
 ALTER TABLE `dna_eppendorfs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `mccda_assoc`
---
-ALTER TABLE `mccda_assoc`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `mccda_growth`
---
-ALTER TABLE `mccda_growth`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `mcconky_assoc`
@@ -478,11 +541,6 @@ ALTER TABLE `plate6`
 -- AUTO_INCREMENT for table `plate45`
 --
 ALTER TABLE `plate45`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `received_bootsocks`
---
-ALTER TABLE `received_bootsocks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `received_samples`
@@ -517,16 +575,34 @@ ALTER TABLE `biochemical_test_results`
   ADD CONSTRAINT `fk_media_id` FOREIGN KEY (`media_id`) REFERENCES `biochemical_test` (`id`);
 
 --
--- Constraints for table `bootsock_assoc`
---
-ALTER TABLE `bootsock_assoc`
-  ADD CONSTRAINT `bootsock_assoc_ibfk_1` FOREIGN KEY (`bootsock_id`) REFERENCES `received_bootsocks` (`id`);
-
---
 -- Constraints for table `broth_assoc`
 --
 ALTER TABLE `broth_assoc`
   ADD CONSTRAINT `broth_assoc_ibfk_1` FOREIGN KEY (`field_sample_id`) REFERENCES `received_samples` (`id`);
+
+--
+-- Constraints for table `campy_bootsock_assoc`
+--
+ALTER TABLE `campy_bootsock_assoc`
+  ADD CONSTRAINT `campy_bootsock_assoc_ibfk_1` FOREIGN KEY (`bootsock_id`) REFERENCES `campy_received_bootsocks` (`id`);
+
+--
+-- Constraints for table `campy_cryovials`
+--
+ALTER TABLE `campy_cryovials`
+  ADD CONSTRAINT `campy_cryovials_ibfk_1` FOREIGN KEY (`falcon_id`) REFERENCES `campy_bootsock_assoc` (`id`);
+
+--
+-- Constraints for table `campy_mccda_assoc`
+--
+ALTER TABLE `campy_mccda_assoc`
+  ADD CONSTRAINT `campy_mccda_assoc_ibfk_1` FOREIGN KEY (`falcon_id`) REFERENCES `campy_bootsock_assoc` (`id`);
+
+--
+-- Constraints for table `campy_mccda_growth`
+--
+ALTER TABLE `campy_mccda_growth`
+  ADD CONSTRAINT `campy_mccda_growth_ibfk_1` FOREIGN KEY (`mccda_plate_id`) REFERENCES `campy_mccda_assoc` (`id`);
 
 --
 -- Constraints for table `colonies`
