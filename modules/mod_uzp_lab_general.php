@@ -162,7 +162,7 @@ class Uzp extends DBase{
    private function dumpData() {
         if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
 		$date = new DateTime();
-		$filename = Config::$config['rootdir']."\downloads\uzp_99hh_".$date->format('Y-m-d_H-i-s').'.sql';
+		$filename = Config::$config['rootdir']."\downloads\99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
 		$zipName = $filename.".zip";
 		$command = Config::$config['mysqldump']." -u ".Config::$config['user']." -p".Config::$config['pass']." ".Config::$config['dbase'].' > '.$filename;
 		shell_exec($command);
