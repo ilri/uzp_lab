@@ -271,9 +271,25 @@ Uzp.prototype.receiveSampleKeypress = function(event){
             $(this).next().focus();
          }
       }
+      else if(uzp_lab.module === 'campy_step3.5') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveFalconVials();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
       else if(uzp_lab.module === 'campy_step4') {
          if($("[name=sample]").is(":focus")) {
             uzp.savePlate3to45();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'campy_step5') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveCampyColonies();
          }
          else {
             $(this).next().focus();
@@ -1384,6 +1400,164 @@ Uzp.prototype.savePlate3 = function(){
             var currentdate = new Date();
             var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
             $('.received .saved').prepend(datetime +': '+ uzp.prevSample +'=>'+uzp.curSample +"<br />");
+         }
+     }
+  });
+};
+
+/**
+ * Attempts to save a falcon and cryo vial association and save it to a box in a specific position
+ * @returns {undefined}
+ */
+Uzp.prototype.saveFalconVials = function(){
+   // get the falcon format and the cryo vial format
+   //var sample_format = $('[name=sample_format]').val(), broth_format = $('[name=broth_format]').val();
+   var falcon_format = $('[name=falcon_format]').val(), cryo_format = $('[name=cryo_format]').val(), storage_box = $('[name=storage_box]').val(), cur_pos = $('[name=vial_pos]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the cryo vial to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(falcon_format === '' || falcon_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the falcon tubes. It should be something like \'BSR010959\'', 'error');
+      $("[name=sample_format]").focus();
+      return;
+   }
+   if(cryo_format === '' || cryo_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the cryo vials to be frozen. It should be something like \'AVAQ70919\'.', 'error');
+      $("[name=sample_format]").focus();
+      return;
+   }
+   if(storage_box === '' || storage_box === undefined){
+      uzp.showNotification('Please scan the barcode for the storage boxes. It should be something like \'AVAQ70919\'.', 'error');
+      $("[name=storage_box]").focus();
+      return;
+   }
+   if(cur_pos === ''){
+      uzp.showNotification('Please enter the current position of the colony.', 'error');
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+
+   //lets validate the aliquot format
+   var c_regex = uzp.createSampleRegex(cryo_format);
+   var f_regex = uzp.createSampleRegex(falcon_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(c_regex.test(sample) === true){ curSampleType = 'cryo_vial'; }          // we have a cryo sample
+   else if(f_regex.test(sample) === true){ curSampleType = 'falcon_tube'; }     // we have a falcon sample
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
+      uzp.prevSampleType = undefined; uzp.curSampleType = undefined;
+      uzp.prevSample = undefined; uzp.curSample = undefined;
+      return;
+   }
+
+   uzp.prevSampleType = uzp.curSampleType;
+   uzp.curSampleType = curSampleType;
+   uzp.prevSample = uzp.curSample;  // move the previous current sample to the previous sample
+   uzp.curSample = sample;
+
+   var res = uzp.validateScannedSamples({firstSample: 'falcon_tube', secondSample: 'cryo_vial'});
+   if(res === 1){ return; }
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {falcon_tube: uzp.prevSample, cryo_vial: uzp.curSample, cur_user: cur_user, box: storage_box, pos: cur_pos},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ uzp.prevSample +'=>'+uzp.curSample +"<br />");
+
+            // update the plate layout
+            var suffix = sample.match(/([0-9]+)$/i);
+            $('#plate_layout .pos_'+cur_pos).html(suffix[0] +' ('+ cur_pos +')').css({'background-color': '#009D59'});
+            $('[name=vial_pos]').val(parseInt(cur_pos)+1);
+            uzp.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Save the colonies whcih grew from microaerobic plates
+ * @returns {undefined}
+ */
+Uzp.prototype.saveCampyColonies = function(){
+   var colonies_format = $('[name=colonies_format]').val(), storage_box = $('[name=storage_box]').val(), cur_pos = $('[name=colony_pos]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the cryo vial to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(colonies_format === '' || colonies_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the colonies. It should be something like \'AVAQ10959\'', 'error');
+      $("[name=sample_format]").focus();
+      return;
+   }
+   if(storage_box === '' || storage_box === undefined){
+      uzp.showNotification('Please scan the barcode for the storage boxes. It should be something like \'AVAQ70919\'.', 'error');
+      $("[name=storage_box]").focus();
+      return;
+   }
+   if(cur_pos === ''){
+      uzp.showNotification('Please enter the current position of the colony.', 'error');
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+
+   //lets validate the aliquot format
+   var c_regex = uzp.createSampleRegex(colonies_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(c_regex.test(sample) === true){ curSampleType = 'cryo_vial'; }          // we have a colony
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
+      return;
+   }
+   uzp.curSample = sample;
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony: uzp.curSample, cur_user: cur_user, box: storage_box, pos: cur_pos},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ uzp.prevSample +'=>'+uzp.curSample +"<br />");
+
+            // update the plate layout
+            var suffix = sample.match(/([0-9]+)$/i);
+            $('#plate_layout .pos_'+cur_pos).html(suffix[0] +' ('+ cur_pos +')').css({'background-color': '#009D59'});
+            $('[name=colony_pos]').val(parseInt(cur_pos)+1);
+            uzp.showNotification(data.mssg, 'success');
          }
      }
   });

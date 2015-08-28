@@ -128,12 +128,16 @@ class Uzp extends DBase{
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyReceiptSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step2'){
-         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalconFreezingHome();
-         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalconFreezingSave();
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalconHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalconSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3.5'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalcon2CryoHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalcon2CryoSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaGrowthHome();
@@ -141,7 +145,7 @@ class Uzp extends DBase{
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step5'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColoniesHome();
-         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->coloniesStorageSave();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMicroaerobicColoniesSave();
       }
 
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
@@ -210,8 +214,9 @@ class Uzp extends DBase{
          <li><a href="?page=step12">Plate 6 -> Eppendorf / DNA Extract (12)</a></li>
          <div><br /><b>Campylobacter Lab Modules</b></div>
          <li><a href="?page=campy_step1">Receive Bootsocks</a></li>
-         <li><a href="?page=campy_step2">Bootsocks to Falcon and cryo tubes</a></li>
+         <li><a href="?page=campy_step2">Bootsocks to Falcon tubes</a></li>
          <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
+         <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
          <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
          <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
          <div><br /><b>Miscellaneous</b></div>
@@ -692,7 +697,6 @@ class Uzp extends DBase{
       }
       $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
-
    }
 
    private function astResultHome(){
@@ -1275,7 +1279,7 @@ class Uzp extends DBase{
          $layout .= "<div class='row'>";
          for($j = 0; $j < $sizeH; $j++, $k++){
             // create a div for this box
-            if(isset($samples[$k])) $layout .= "<div class='pos occupied'>$k</div>";
+            if(isset($samples[$k])) $layout .= "<div class='pos occupied'>{$samples[$k]} ($k)</div>";
             else $layout .= "<div class='pos empty pos_$k'>$k</div>";
          }
          $layout .= "</div>";
@@ -1354,7 +1358,7 @@ class Uzp extends DBase{
     */
    private function campyReceiptSave(){
       // time to save the received sample
-      $query = 'insert into received_bootsocks(sample, user) values(:sample, :user)';
+      $query = 'insert into campy_received_bootsocks(sample, user) values(:sample, :user)';
       $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user']);
 
       $result = $this->Dbase->ExecuteQuery($query, $vals);
@@ -1365,7 +1369,7 @@ class Uzp extends DBase{
    /**
     * Creates a home page for saving bootsock to a falcon tube and the cryo vials
     */
-   private function campyFalconFreezingHome(){
+   private function campyFalconHome(){
       $userCombo = $this->usersCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
@@ -1378,11 +1382,11 @@ class Uzp extends DBase{
 
 <!-- So yes its a different module, but the functionality is just the same. I will not bother changing the HTML placeholders -->
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Linking a field bootsock to falcon tubes and cryo vials</h3>
+   <h3 class="center" id="home_title">Linking a bootsock to falcon tubes</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="sample_format"><label style="float: left;">Bootsock Sample format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="broth_format"><label style="float: left;">Falcon tube/Freezing Samples format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
+      <div id="sample_format"><label style="float: left;">Bootsock format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="broth_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1392,7 +1396,7 @@ class Uzp extends DBase{
          </div>
       </div>
    </div>
-   <div class="received"><div class="saved">Falcon tubes and vials appear here</div></div>
+   <div class="received"><div class="saved">Falcon tubes appear here</div></div>
 </div>
 <div id="notification_box"><div id="msg"></div></div>
 <script>
@@ -1414,13 +1418,13 @@ class Uzp extends DBase{
    /**
     * Saves a new association of the bootsoc and the falcon tubes/cryo vials
     */
-   private function campyFalconFreezingSave(){
+   private function campyFalconSave(){
       /**
        * check whether the bootsoc is in the database
        * if it is in the database, save the association
        */
-      $checkQuery = 'select id from received_bootsocks where sample = :sample';
-      $insertQuery = 'insert into bootsock_assoc(bootsock_id, daughter_sample, user) values(:bootsock_id, :daughter_sample, :user)';
+      $checkQuery = 'select id from campy_received_bootsocks where sample = :sample';
+      $insertQuery = 'insert into campy_bootsock_assoc(bootsock_id, daughter_sample, user) values(:bootsock_id, :daughter_sample, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
@@ -1429,6 +1433,84 @@ class Uzp extends DBase{
       // now add the association
       $result = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'daughter_sample' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
+    * Create a home page for saving the cryo vials from the falcon tube
+    */
+   private function campyFalcon2CryoHome(){
+      $userCombo = $this->usersCombo();
+      $boxQuery = 'select position_in_box, cryovial from campy_cryovials order by position_in_box';
+      $res = $this->Dbase->ExecuteQuery($boxQuery, NULL, PDO::FETCH_KEY_PAIR);
+      if($res == 1){
+         $this->homePage($this->Dbase->lastError);
+         return;
+      }
+      // get all the samples currently saved in the box
+      $layout = $this->storageBoxLayout(10, 10, $res);
+      $lastCount = count($res) + 1;
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="colonies_storage">
+   <h3 class="center" id="home_title">Logging all created cryo vials from the falcon tubes</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="falcon_format"><label style="float: left;">Falcon format: </label>&nbsp;&nbsp;<input type="text" name="falcon_format" class="input-small" value="BSR013939" /></div>
+      <div id="cryovial_format"><label style="float: left;">Vials format: </label>&nbsp;&nbsp;<input type="text" name="cryo_format" class="input-small" value="AVAQ01965" /></div>
+      <div id="plate_format"><label style="float: left;">Storage Box: </label>&nbsp;&nbsp;<input type="text" name="storage_box" class="input-small" value="BREP0050" /></div>
+      <div id="colony_pos"><label style="float: left;">Position: </label>&nbsp;&nbsp;<input type="text" name="vial_pos" class="input-small" value="<?php echo $lastCount; ?>" size="25px" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+   </div>
+   <div id="cryo_storage_left" class="left">
+      <input type="text" name="sample" />
+      <div>
+         <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+      </div>
+      <div class="received"><div class="saved">Associated falcon tubes and cryo vials appear here</div></div>
+   </div>
+   <div id="plate_layout"><?php echo $layout; ?></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveFalconVials).jqxButton({ width: '150'});
+
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves a falcon tube -- cryo vial association. In addition it saves the cryo vial in its required position
+    */
+   private function campyFalcon2CryoSave(){
+      $checkQuery = 'select id from campy_bootsock_assoc where daughter_sample = :sample';
+      $insertQuery = 'insert into campy_cryovials(falcon_id, cryovial, user, box, position_in_box) values(:falcon_id, :cryovial, :user, :box, :position_in_box)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['falcon_tube']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0){
+         $this->Dbase->CreateLogEntry("The falcon sample '{$_POST['falcon_tube']}' is not in the database.", 'fatal');
+         die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['falcon_tube']}' is not in the database.")));
+      }
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('falcon_id' => $result[0]['id'], 'cryovial' => $_POST['cryo_vial'], 'user' => $_POST['cur_user'], 'box' => $_POST['box'], 'position_in_box' => $_POST['pos']));
+      if($result == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
@@ -1448,11 +1530,11 @@ class Uzp extends DBase{
 
 <!-- We are re-using the broth template. So no changing things a lot -->
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Loading broth from falcon tube to a plate (Plate 1)</h3>
+   <h3 class="center" id="home_title">Loading broth from falcon tube to MCCDA plate</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="colony_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="BSR010959" /></div>
-      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00043" /></div>
+      <div id="plate_format"><label style="float: left;">MCCDA format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00043" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1489,12 +1571,15 @@ class Uzp extends DBase{
        * check whether the falcon sample is in the database
        * if it is in the database, save the association of the falcon tube and the plate
        */
-      $checkQuery = 'select id from bootsock_assoc where daughter_sample = :sample';
-      $insertQuery = 'insert into mccda_assoc(falcon_id, plate1_barcode, user) values(:bootsock_id, :plate1_barcode, :user)';
+      $checkQuery = 'select id from campy_bootsock_assoc where daughter_sample = :sample';
+      $insertQuery = 'insert into campy_mccda_assoc(falcon_id, plate1_barcode, user) values(:bootsock_id, :plate1_barcode, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
-      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['field_sample']}' is not in the database.")));
+      else if(count($result) == 0){
+         $this->Dbase->CreateLogEntry("The falcon sample '{$_POST['field_sample']}' is not in the database.", 'fatal');
+         die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['field_sample']}' is not in the database.")));
+      }
 
       // now add the association
       $result = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'plate1_barcode' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
@@ -1505,6 +1590,9 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /**
+    * Create a home page for loading the aerobic/micro-aerobic plates with the broth from the MCCDA plate
+    */
    private function campyMccdaGrowthHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1521,8 +1609,8 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">MCCDA Plate -> Aerobic and Micro-aerobic Plates</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="plate_format"><label style="float: left;">MCCDA Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00045" /></div>
-      <div id="media_format"><label style="float: left;">Aerobic and Micro-aerobic Plates format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ64156" /></div>
+      <div id="plate_format"><label style="float: left;">MCCDA Plate: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00045" /></div>
+      <div id="media_format"><label style="float: left;">Aerobic Plates format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ64156" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1541,7 +1629,7 @@ class Uzp extends DBase{
 
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
-   $("#jqxSubmitButton").on('click', uzp.saveColonies).jqxButton({ width: '150'});
+   $("#jqxSubmitButton").on('click', uzp.savePlate3to45).jqxButton({ width: '150'});
 
    uzp.prevSample = undefined;
    uzp.curSample = undefined;
@@ -1554,13 +1642,16 @@ class Uzp extends DBase{
 <?php
    }
 
+   /**
+    * Saves the association between the colonies which grew from the mccda plate and the aerobi/microbic plate
+    */
    private function campyMccdaGrowthSave(){
       /**
        * check whether the plate is in the database
        * if it is in the database, save the plate and its associated colonies
        */
-      $checkQuery = 'select id from mccda_assoc where plate1_barcode = :plate';
-      $insertQuery = 'insert into mccda_growth(mccda_plate_id, am_plate, user) values(:mccda_plate_id, :am_plate, :user)';
+      $checkQuery = 'select id from campy_mccda_assoc where plate1_barcode = :plate';
+      $insertQuery = 'insert into campy_mccda_growth(mccda_plate_id, am_plate, user) values(:mccda_plate_id, :am_plate, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
@@ -1585,7 +1676,14 @@ class Uzp extends DBase{
     */
    private function campyMicroaerobicColoniesHome(){
       $userCombo = $this->usersCombo();
-      $layout = $this->storageBoxLayout(10, 10);
+      $boxQuery = 'select position_in_box, colony from campy_colonies order by position_in_box';
+      $colonies = $this->Dbase->ExecuteQuery($boxQuery, NULL, PDO::FETCH_KEY_PAIR);
+      if($colonies == 1){
+         $this->homePage($this->Dbase->lastError);
+         return;
+      }
+      // get all the samples currently saved in the box
+      $layout = $this->storageBoxLayout(10, 10, $colonies);
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -1599,7 +1697,7 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Logging all microaerobic colonies</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
+      <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="AVAQ13939" /></div>
       <div id="plate_format"><label style="float: left;">Storage Box: </label>&nbsp;&nbsp;<input type="text" name="storage_box" class="input-small" value="AVMS00050" /></div>
       <div id="colony_pos"><label style="float: left;">Position: </label>&nbsp;&nbsp;<input type="text" name="colony_pos" class="input-small" value="1" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
@@ -1618,11 +1716,33 @@ class Uzp extends DBase{
 
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
-   $("#jqxSubmitButton").on('click', uzp.saveColonies).jqxButton({ width: '150'});
+   $("#jqxSubmitButton").on('click', uzp.saveCampyColonies).jqxButton({ width: '150'});
 
    $(document).keypress(uzp.receiveSampleKeypress);
 </script>
 <?php
+   }
+
+   /**
+    * Save the colonies which have grown in microaerobic conditions
+    */
+   private function campyMicroaerobicColoniesSave(){
+      /**
+       * Check whether the colony exists in the database and save it in the defined box and position
+       */
+      $checkQuery = 'select id, box, position_in_box from campy_colonies where colony = :colony';
+      $insertQuery = 'insert into campy_colonies(colony, user, box, position_in_box) values(:colony, :user, :box, :position_in_box)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['colony']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if($result[0]['box'] != NULL) die(json_encode(array('error' => true, 'mssg' => "The colony '{$_POST['colony']}' has already been saved before in <b>{$result[0]['box']}</b> pos <b>{$result[0]['position_in_box']}</b>.")));
+
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('colony' => $_POST['colony'], 'user' => $_POST['cur_user'], 'box' => $_POST['box'], 'position_in_box' => $_POST['pos']));
+      if($result == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current position')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      else die(json_encode(array('error' => false, 'mssg' => 'The colony storage has been saved succesfully.')));
    }
 }
 ?>
