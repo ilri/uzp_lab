@@ -109,7 +109,7 @@ Uzp.prototype.createOptionList = function(commonName, optionLabels, optionValues
 
 Uzp.prototype.saveReceivedSample = function(){
    // get the sample format and the received sample
-   var format = $('[name=sample_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val();
+   var format = $('[name=sample_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), forSequencing = $("#sequencingId").val();
    if(sample === ''){
       uzp.showNotification('Please scan/enter the sample to save.', 'error');
       $("[name=sample]").focus();
@@ -120,6 +120,12 @@ Uzp.prototype.saveReceivedSample = function(){
       $("[name=sample_format]").focus();
       return;
    }
+   if(forSequencing === '' || forSequencing === undefined){
+      uzp.showNotification('Please specify if sample is to be sequenced', 'error');
+      $("#sequencingId").focus();
+      return;
+   }
+  
    if(uzp.fieldSampleRegex === undefined){
       //lets create the sample regex format
       var prefix = format.match(/^([a-z]+)/i);
@@ -141,7 +147,7 @@ Uzp.prototype.saveReceivedSample = function(){
 
    // seems all is well, lets save the sample
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {format: format, sample: sample, cur_user: cur_user, module: uzp_lab.module },
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {format: format, sample: sample, cur_user: cur_user, for_sequencing: forSequencing, module: uzp_lab.module },
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');

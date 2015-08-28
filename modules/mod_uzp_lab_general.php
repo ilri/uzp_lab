@@ -232,6 +232,7 @@ class Uzp extends DBase{
    private function receiveSamples(){
       $addInfo = ($addInfo != '') ? "<div id='addinfo'>$addInfo</div>" : '';
       $userCombo = $this->usersCombo();
+      $sequencingCombo = $this->sequencingCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -246,7 +247,8 @@ class Uzp extends DBase{
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="sample_format"><label style="float: left;">Sample format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" value="AVAQ63847" /></div>
-      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+      <div id="for_sequencing"><label style="float: left;">For genome sequencing: </label>&nbsp;&nbsp;<?php echo $sequencingCombo; ?></div> <br />
 
       <input type="text" name="sample" />
       <div>
@@ -273,8 +275,8 @@ class Uzp extends DBase{
     */
    private function receiveSamplesSave(){
       // time to save the received sample
-      $query = 'insert into received_samples(sample, user) values(:sample, :user)';
-      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user']);
+      $query = 'insert into received_samples(sample, user, for_sequencing) values(:sample, :user, :for_sequencing)';
+      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user'], 'for_sequencing' => $_POST['for_sequencing']);
 
       $result = $this->Dbase->ExecuteQuery($query, $vals);
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
@@ -995,6 +997,15 @@ class Uzp extends DBase{
       $userVals = array('John Kiiru');
       $userIds = array('kiiru_john');
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'users', 'id' => 'usersId', 'class' => 'input-medium');
+      $userCombo = GeneralTasks::PopulateCombo($settings);
+
+      return $userCombo;
+   }
+   
+   private function sequencingCombo(){
+      $userVals = array('Yes', 'No');
+      $userIds = array('yes', 'no');
+      $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'users', 'id' => 'sequencingId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
       return $userCombo;
