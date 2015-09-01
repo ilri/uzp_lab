@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 4.4.13
+-- version 4.4.13.1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 28, 2015 at 10:31 AM
+-- Generation Time: Sep 01, 2015 at 08:32 AM
 -- Server version: 5.6.24
 -- PHP Version: 5.6.11
 
@@ -19,6 +19,50 @@ SET time_zone = "+00:00";
 --
 -- Database: `azizi_uzp_99h_lab`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `aliquots`
+--
+
+CREATE TABLE IF NOT EXISTS `aliquots` (
+  `id` int(11) NOT NULL,
+  `label` varchar(9) COLLATE latin1_bin NOT NULL,
+  `parent_sample` int(11) NOT NULL,
+  `aliquot_number` tinyint(4) NOT NULL,
+  `tray` varchar(11) COLLATE latin1_bin DEFAULT NULL,
+  `position` tinyint(4) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `aliq_animals`
+--
+
+CREATE TABLE IF NOT EXISTS `aliq_animals` (
+  `id` int(11) NOT NULL,
+  `animal_id` varchar(20) COLLATE latin1_bin NOT NULL,
+  `organism` enum('Sheep','Goat') COLLATE latin1_bin DEFAULT NULL,
+  `age` varchar(15) COLLATE latin1_bin DEFAULT NULL,
+  `sex` enum('Male','Female') COLLATE latin1_bin DEFAULT NULL,
+  `prev_tag` varchar(10) COLLATE latin1_bin DEFAULT NULL,
+  `location` varchar(35) COLLATE latin1_bin NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `aliq_samples`
+--
+
+CREATE TABLE IF NOT EXISTS `aliq_samples` (
+  `id` int(11) NOT NULL,
+  `label` varchar(9) COLLATE latin1_bin NOT NULL,
+  `adding_timestamp` datetime NOT NULL,
+  `comments` varchar(1000) COLLATE latin1_bin DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 
 -- --------------------------------------------------------
 
@@ -162,7 +206,8 @@ CREATE TABLE IF NOT EXISTS `campy_received_bootsocks` (
   `id` int(11) NOT NULL,
   `sample` varchar(9) NOT NULL,
   `datetime_received` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user` varchar(20) NOT NULL
+  `user` varchar(20) NOT NULL,
+  `for_sequencing` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -300,6 +345,29 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `aliquots`
+--
+ALTER TABLE `aliquots`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `label` (`label`),
+  ADD UNIQUE KEY `tray` (`tray`,`position`),
+  ADD KEY `parent_sample` (`parent_sample`);
+
+--
+-- Indexes for table `aliq_animals`
+--
+ALTER TABLE `aliq_animals`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `animal_id` (`animal_id`);
+
+--
+-- Indexes for table `aliq_samples`
+--
+ALTER TABLE `aliq_samples`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `label` (`label`);
 
 --
 -- Indexes for table `ast_result`
@@ -458,6 +526,21 @@ ALTER TABLE `sessions`
 --
 
 --
+-- AUTO_INCREMENT for table `aliquots`
+--
+ALTER TABLE `aliquots`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `aliq_animals`
+--
+ALTER TABLE `aliq_animals`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `aliq_samples`
+--
+ALTER TABLE `aliq_samples`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `ast_result`
 --
 ALTER TABLE `ast_result`
@@ -555,6 +638,12 @@ ALTER TABLE `sessions`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `aliquots`
+--
+ALTER TABLE `aliquots`
+  ADD CONSTRAINT `aliquots_ibfk_1` FOREIGN KEY (`parent_sample`) REFERENCES `aliq_samples` (`id`);
 
 --
 -- Constraints for table `ast_result`

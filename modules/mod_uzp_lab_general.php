@@ -782,7 +782,7 @@ class Uzp extends DBase{
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="colony_format"><label style="float: left;">Colony format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
-      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="plate_format"><label style="float: left;">Plate 6 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
@@ -1159,7 +1159,7 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Creating colonies for archival from the plate</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="mcconky_format"><label style="float: left;">McConky Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="mcconky_format"><label style="float: left;">Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
       <div id="colonies_format"><label style="float: left;">Colonies format: </label>&nbsp;&nbsp;<input type="text" name="colonies_format" class="input-small" value="BDT013939" /></div>
       <div id="no_qtr_colonies"><label style="float: left;">No. Colonies in quarter: </label>&nbsp;&nbsp;<input type="number" name="no_qtr_colonies" class="input-small" style="height: 30px;" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
@@ -1317,6 +1317,7 @@ class Uzp extends DBase{
    private function campyReceiptHome(){
       $addInfo = ($addInfo != '') ? "<div id='addinfo'>$addInfo</div>" : '';
       $userCombo = $this->usersCombo();
+	  $sequencingCombo = $this->sequencingCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
     <script type="text/javascript" src="js/uzp_lab.js"></script>
@@ -1331,7 +1332,8 @@ class Uzp extends DBase{
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="sample_format"><label style="float: left;">Bootsock Barcode format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" value="AVAQ63847" /></div>
-      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+	  <div id="for_sequencing"><label style="float: left;">For genome sequencing: </label>&nbsp;&nbsp;<?php echo $sequencingCombo; ?></div><br />
 
       <input type="text" name="sample" />
       <div>
@@ -1358,8 +1360,8 @@ class Uzp extends DBase{
     */
    private function campyReceiptSave(){
       // time to save the received sample
-      $query = 'insert into campy_received_bootsocks(sample, user) values(:sample, :user)';
-      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user']);
+      $query = 'insert into campy_received_bootsocks(sample, user) values(:sample, :user, :for_sequencing)';
+      $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user'], 'for_sequencing' => $_POST['for_sequencing']);
 
       $result = $this->Dbase->ExecuteQuery($query, $vals);
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
