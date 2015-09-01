@@ -91,10 +91,6 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->mhVialHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->mhVialSave();
       }
-      elseif(OPTIONS_REQUESTED_MODULE == 'step4.2'){
-         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->mhHome();
-         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->mhSave();
-      }
       elseif(OPTIONS_REQUESTED_MODULE == 'step5.1'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->coloniesStorage();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->coloniesStorageSave();
