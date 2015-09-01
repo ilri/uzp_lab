@@ -238,8 +238,8 @@ class Uzp extends DBase{
          <li><a href="?page=step11.1">Plate 6 to MH Plate(11.1)</a></li>
          <li><a href="?page=step12">MH Plate to Eppendorf / DNA Extract (12)</a></li>
          <div><br /><b>Campylobacter Lab Modules</b></div>
-         <li><a href="?page=campy_step1">Receive Bootsocks</a></li>
-         <li><a href="?page=campy_step2">Bootsocks to Falcon tubes</a></li>
+         <li><a href="?page=campy_step1">Receive Bootsocks/Faeces Pots</a></li>
+         <li><a href="?page=campy_step2">Bootsocks/Pots to Falcon tubes</a></li>
          <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
          <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
          <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
@@ -1651,7 +1651,7 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Log the bootsock received from the field</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="sample_format"><label style="float: left;">Bootsock Barcode format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" value="AVAQ63847" /></div>
+      <div id="sample_format"><label style="float: left;">Bootsock/Pot Barcode format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" value="AVAQ63847" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
 	  <div id="for_sequencing"><label style="float: left;">For genome sequencing: </label>&nbsp;&nbsp;<?php echo $sequencingCombo; ?></div><br />
 
@@ -1707,7 +1707,7 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Linking a bootsock to falcon tubes</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="sample_format"><label style="float: left;">Bootsock format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="sample_format"><label style="float: left;">Bootsock/Pot format: </label>&nbsp;&nbsp;<input type="text" name="sample_format" class="input-small" value="AVAQ70919" /></div>
       <div id="broth_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="broth_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
