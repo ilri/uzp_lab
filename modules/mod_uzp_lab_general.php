@@ -115,6 +115,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3Home();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3Save();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step8.1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3ToMHHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3ToMHSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'step9'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate3to45Home();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate3to45Save();
@@ -126,6 +130,10 @@ class Uzp extends DBase{
       elseif(OPTIONS_REQUESTED_MODULE == 'step11'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->regrowHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->regrowSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'step11.1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plate6ToMHHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->plate6ToMHSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'step12'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->plateToEppendorfHome();
@@ -223,10 +231,12 @@ class Uzp extends DBase{
          <li><a href="?page=step6">Biochemical Test Prep (6)</a></li>
          <li><a href="?page=step7">Biochemical Test Result (7)</a></li>
          <li><a href="?page=step8">Archival to Plate 3 (8)</a></li>
-         <li><a href="?page=step9">Plate3 to Plates 4,5 (9)</a></li>
+         <li><a href="?page=step8.1">Plate 3 to MH Plate(8.1)</a></li>
+         <li><a href="?page=step9">MH Plate to Plates 4,5 (9)</a></li>
          <li><a href="?page=step10">Plates 4,5 to AST Result Reading (10)</a></li>
-         <li><a href="?page=step11">Archival to Plate 6 (Regrowing) (11)</a></li>
-         <li><a href="?page=step12">Plate 6 to Eppendorf / DNA Extract (12)</a></li>
+         <li><a href="?page=step11">Archival to Plate 6 (11)</a></li>
+         <li><a href="?page=step11.1">Plate 6 to MH Plate(11.1)</a></li>
+         <li><a href="?page=step12">MH Plate to Eppendorf / DNA Extract (12)</a></li>
          <div><br /><b>Campylobacter Lab Modules</b></div>
          <li><a href="?page=campy_step1">Receive Bootsocks</a></li>
          <li><a href="?page=campy_step2">Bootsocks to Falcon tubes</a></li>
@@ -650,7 +660,7 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Third Plating (Archival -> Plate 3)</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="colony_format"><label style="float: left;">Colony format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="colony_format"><label style="float: left;">Archived vial format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
       <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
@@ -700,6 +710,124 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
+   
+   private function plate3ToMHHome() {
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Plate 3 to MH Plate</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="colony_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="plate_format"><label style="float: left;">MH Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked samples appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveMh3).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+   
+   private function plate3ToMHSave() {
+      $checkQuery = 'select id from plate3 where plate = :colony';
+      $insertQuery = 'insert into mh3_assoc(plate3_id, mh, user) values(:field_sample_id, :broth_sample, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "Plate '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('field_sample_id' => $result[0]['id'], 'broth_sample' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+   
+   private function plate6ToMHHome() {
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Plate 6 to MH Plate</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="colony_format"><label style="float: left;">Plate 6 format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="plate_format"><label style="float: left;">MH Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked samples appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveMh6).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+   
+   private function plate6ToMHSave() {
+      $checkQuery = 'select id from plate6 where plate = :colony';
+      $insertQuery = 'insert into mh6_assoc(plate6_id, mh, user) values(:field_sample_id, :broth_sample, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "Plate '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $result = $this->Dbase->ExecuteQuery($insertQuery, array('field_sample_id' => $result[0]['id'], 'broth_sample' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
 
    private function plate3to45Home(){
       $userCombo = $this->usersCombo();
@@ -713,10 +841,10 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
 <div id="colonies">
-   <h3 class="center" id="home_title">Plate 3 -> Plate 4 and Plate 5</h3>
+   <h3 class="center" id="home_title">MH Plate -> Plate 4 and Plate 5</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="plate_format"><label style="float: left;">Plate 3 format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
+      <div id="plate_format"><label style="float: left;">MH Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ70919" /></div>
       <div id="media_format"><label style="float: left;">Plate 4,5 format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="BSR010959" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
@@ -750,8 +878,8 @@ class Uzp extends DBase{
    }
 
    private function plate3to45Save() {
-      $checkQuery = 'select id from plate3 where plate = :plate';
-      $insertQuery = 'insert into plate45(plate3_id, plate, number, user) values(:plate3_id, :curr_plate, :number, :user)';
+      $checkQuery = 'select id from mh3_assoc where mh = :plate';
+      $insertQuery = 'insert into plate45(mh3_id, plate, number, user) values(:plate3_id, :curr_plate, :number, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
@@ -918,7 +1046,7 @@ class Uzp extends DBase{
     <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
 
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Plate 6 -> Eppendorf / DNA Extract (12)</h3>
+   <h3 class="center" id="home_title">MH Plate -> Eppendorf / DNA Extract (12)</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
@@ -958,8 +1086,8 @@ class Uzp extends DBase{
        * if it is in the database, save the association
        */
       //{cur_user: cur_user, sample: sample, test_name: test_name, test_result: test_result}
-      $checkQuery = 'select id from plate6 where plate = :plate';
-      $insertQuery = 'insert into dna_eppendorfs(plate6_id, eppendorf, user) values(:plate6_id, :eppendorf, :user)';
+      $checkQuery = 'select id from mh6_assoc where mh = :plate';
+      $insertQuery = 'insert into dna_eppendorfs(mh6_id, eppendorf, user) values(:plate6_id, :eppendorf, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['sample']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));

@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Sep 01, 2015 at 01:06 PM
+-- Generation Time: Sep 01, 2015 at 03:41 PM
 -- Server version: 5.6.24
 -- PHP Version: 5.6.11
 
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `ast_result` (
 
 CREATE TABLE IF NOT EXISTS `biochemical_test` (
   `id` int(11) NOT NULL,
-  `plate2_id` int(11) NOT NULL,
+  `mh2_id` int(11) NOT NULL,
   `media` varchar(9) NOT NULL,
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `colonies` (
 
 CREATE TABLE IF NOT EXISTS `dna_eppendorfs` (
   `id` int(11) NOT NULL,
-  `plate6_id` int(11) NOT NULL,
+  `mh6_id` int(11) NOT NULL,
   `eppendorf` varchar(11) NOT NULL,
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -256,6 +256,48 @@ CREATE TABLE IF NOT EXISTS `mcconky_assoc` (
   `media_used` varchar(20) NOT NULL,
   `user` varchar(20) NOT NULL,
   `no_qtr_colonies` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mh2_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `mh2_assoc` (
+  `id` int(11) NOT NULL,
+  `plate2_id` int(11) NOT NULL,
+  `mh` varchar(50) NOT NULL,
+  `user` varchar(50) NOT NULL,
+  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mh3_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `mh3_assoc` (
+  `id` int(11) NOT NULL,
+  `plate3_id` int(11) NOT NULL,
+  `mh` varchar(50) NOT NULL,
+  `user` varchar(50) NOT NULL,
+  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mh6_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `mh6_assoc` (
+  `id` int(11) NOT NULL,
+  `plate6_id` int(11) NOT NULL,
+  `mh` varchar(50) NOT NULL,
+  `user` varchar(50) NOT NULL,
+  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -339,7 +381,7 @@ CREATE TABLE IF NOT EXISTS `plate6` (
 
 CREATE TABLE IF NOT EXISTS `plate45` (
   `id` int(11) NOT NULL,
-  `plate3_id` int(11) NOT NULL,
+  `mh3_id` int(11) NOT NULL,
   `plate` varchar(9) NOT NULL,
   `number` int(11) NOT NULL,
   `user` varchar(20) NOT NULL,
@@ -413,7 +455,7 @@ ALTER TABLE `ast_result`
 ALTER TABLE `biochemical_test`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `media` (`media`),
-  ADD KEY `fk_plate2_id` (`plate2_id`);
+  ADD KEY `fk_plate2_id` (`mh2_id`);
 
 --
 -- Indexes for table `biochemical_test_results`
@@ -493,7 +535,7 @@ ALTER TABLE `colonies`
 ALTER TABLE `dna_eppendorfs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `plate` (`eppendorf`),
-  ADD UNIQUE KEY `plate6_id` (`plate6_id`),
+  ADD UNIQUE KEY `plate6_id` (`mh6_id`),
   ADD UNIQUE KEY `dna` (`dna`);
 
 --
@@ -504,6 +546,27 @@ ALTER TABLE `mcconky_assoc`
   ADD UNIQUE KEY `broth_sample_id` (`broth_sample_id`),
   ADD UNIQUE KEY `plate1_barcode` (`plate1_barcode`),
   ADD UNIQUE KEY `broth_sample_id_2` (`broth_sample_id`,`plate1_barcode`);
+
+--
+-- Indexes for table `mh2_assoc`
+--
+ALTER TABLE `mh2_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `plate_2_id` (`plate2_id`);
+
+--
+-- Indexes for table `mh3_assoc`
+--
+ALTER TABLE `mh3_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `plate3_id` (`plate3_id`);
+
+--
+-- Indexes for table `mh6_assoc`
+--
+ALTER TABLE `mh6_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `plate_6_id` (`plate6_id`);
 
 --
 -- Indexes for table `mh_assoc`
@@ -549,7 +612,7 @@ ALTER TABLE `plate6`
 ALTER TABLE `plate45`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `plate45` (`plate`),
-  ADD UNIQUE KEY `plate_number` (`plate3_id`,`number`);
+  ADD UNIQUE KEY `plate_number` (`mh3_id`,`number`);
 
 --
 -- Indexes for table `received_samples`
@@ -651,6 +714,21 @@ ALTER TABLE `dna_eppendorfs`
 ALTER TABLE `mcconky_assoc`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `mh2_assoc`
+--
+ALTER TABLE `mh2_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `mh3_assoc`
+--
+ALTER TABLE `mh3_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `mh6_assoc`
+--
+ALTER TABLE `mh6_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `mh_assoc`
 --
 ALTER TABLE `mh_assoc`
@@ -710,7 +788,7 @@ ALTER TABLE `ast_result`
 -- Constraints for table `biochemical_test`
 --
 ALTER TABLE `biochemical_test`
-  ADD CONSTRAINT `fk_plate2_id` FOREIGN KEY (`plate2_id`) REFERENCES `plate2` (`id`);
+  ADD CONSTRAINT `biochemical_test_ibfk_1` FOREIGN KEY (`mh2_id`) REFERENCES `mh2_assoc` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `biochemical_test_results`
@@ -758,13 +836,31 @@ ALTER TABLE `colonies`
 -- Constraints for table `dna_eppendorfs`
 --
 ALTER TABLE `dna_eppendorfs`
-  ADD CONSTRAINT `fk_plate6_id` FOREIGN KEY (`plate6_id`) REFERENCES `plate6` (`id`);
+  ADD CONSTRAINT `dna_eppendorfs_ibfk_1` FOREIGN KEY (`mh6_id`) REFERENCES `mh6_assoc` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `mcconky_assoc`
 --
 ALTER TABLE `mcconky_assoc`
   ADD CONSTRAINT `mcconky_assoc_ibfk_1` FOREIGN KEY (`broth_sample_id`) REFERENCES `broth_assoc` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mh2_assoc`
+--
+ALTER TABLE `mh2_assoc`
+  ADD CONSTRAINT `mh2_assoc_ibfk_1` FOREIGN KEY (`plate2_id`) REFERENCES `plate2` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mh3_assoc`
+--
+ALTER TABLE `mh3_assoc`
+  ADD CONSTRAINT `mh3_assoc_ibfk_1` FOREIGN KEY (`plate3_id`) REFERENCES `plate3` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mh6_assoc`
+--
+ALTER TABLE `mh6_assoc`
+  ADD CONSTRAINT `mh6_assoc_ibfk_1` FOREIGN KEY (`plate6_id`) REFERENCES `plate6` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `mh_assoc`
@@ -800,7 +896,7 @@ ALTER TABLE `plate6`
 -- Constraints for table `plate45`
 --
 ALTER TABLE `plate45`
-  ADD CONSTRAINT `fk_plate45_plate3_id` FOREIGN KEY (`plate3_id`) REFERENCES `plate3` (`id`);
+  ADD CONSTRAINT `plate45_ibfk_1` FOREIGN KEY (`mh3_id`) REFERENCES `mh3_assoc` (`id`) ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
