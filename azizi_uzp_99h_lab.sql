@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Sep 01, 2015 at 08:32 AM
+-- Generation Time: Sep 01, 2015 at 01:06 PM
 -- Server version: 5.6.24
 -- PHP Version: 5.6.11
 
@@ -261,12 +261,43 @@ CREATE TABLE IF NOT EXISTS `mcconky_assoc` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mh_assoc`
+--
+
+CREATE TABLE IF NOT EXISTS `mh_assoc` (
+  `id` int(11) NOT NULL,
+  `colony_id` int(11) NOT NULL,
+  `mh` varchar(50) NOT NULL,
+  `user` varchar(50) NOT NULL,
+  `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mh_vial`
+--
+
+CREATE TABLE IF NOT EXISTS `mh_vial` (
+  `id` int(11) NOT NULL,
+  `mh_id` int(11) NOT NULL,
+  `mh_vial` varchar(50) NOT NULL,
+  `datetime_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `box` varchar(50) DEFAULT NULL,
+  `position_in_box` int(11) DEFAULT NULL,
+  `pos_saved_by` varchar(50) DEFAULT NULL,
+  `user` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `plate2`
 --
 
 CREATE TABLE IF NOT EXISTS `plate2` (
   `id` int(11) NOT NULL,
-  `colony_id` int(11) NOT NULL,
+  `mh_vial_id` int(11) NOT NULL,
   `plate` varchar(9) NOT NULL,
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -280,7 +311,7 @@ CREATE TABLE IF NOT EXISTS `plate2` (
 
 CREATE TABLE IF NOT EXISTS `plate3` (
   `id` int(11) NOT NULL,
-  `colony_id` int(11) NOT NULL,
+  `mh_vial_id` int(11) NOT NULL,
   `plate` varchar(9) NOT NULL,
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -294,7 +325,7 @@ CREATE TABLE IF NOT EXISTS `plate3` (
 
 CREATE TABLE IF NOT EXISTS `plate6` (
   `id` int(11) NOT NULL,
-  `colony_id` int(11) NOT NULL,
+  `mh_vial_id` int(11) NOT NULL,
   `plate` varchar(9) NOT NULL,
   `user` varchar(20) NOT NULL,
   `datetime_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -475,12 +506,26 @@ ALTER TABLE `mcconky_assoc`
   ADD UNIQUE KEY `broth_sample_id_2` (`broth_sample_id`,`plate1_barcode`);
 
 --
+-- Indexes for table `mh_assoc`
+--
+ALTER TABLE `mh_assoc`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `colony_id` (`colony_id`);
+
+--
+-- Indexes for table `mh_vial`
+--
+ALTER TABLE `mh_vial`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `mh_id` (`mh_id`);
+
+--
 -- Indexes for table `plate2`
 --
 ALTER TABLE `plate2`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `plate` (`plate`),
-  ADD KEY `fk_plate2_colony_id` (`colony_id`);
+  ADD KEY `fk_plate2_colony_id` (`mh_vial_id`);
 
 --
 -- Indexes for table `plate3`
@@ -488,7 +533,7 @@ ALTER TABLE `plate2`
 ALTER TABLE `plate3`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `plate` (`plate`),
-  ADD KEY `fk_plate3_colony_id` (`colony_id`);
+  ADD KEY `fk_plate3_colony_id` (`mh_vial_id`);
 
 --
 -- Indexes for table `plate6`
@@ -496,7 +541,7 @@ ALTER TABLE `plate3`
 ALTER TABLE `plate6`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `plate` (`plate`),
-  ADD KEY `fk_plate6_colony_id` (`colony_id`);
+  ADD KEY `fk_plate6_colony_id` (`mh_vial_id`);
 
 --
 -- Indexes for table `plate45`
@@ -606,6 +651,16 @@ ALTER TABLE `dna_eppendorfs`
 ALTER TABLE `mcconky_assoc`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `mh_assoc`
+--
+ALTER TABLE `mh_assoc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `mh_vial`
+--
+ALTER TABLE `mh_vial`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `plate2`
 --
 ALTER TABLE `plate2`
@@ -706,22 +761,40 @@ ALTER TABLE `dna_eppendorfs`
   ADD CONSTRAINT `fk_plate6_id` FOREIGN KEY (`plate6_id`) REFERENCES `plate6` (`id`);
 
 --
+-- Constraints for table `mcconky_assoc`
+--
+ALTER TABLE `mcconky_assoc`
+  ADD CONSTRAINT `mcconky_assoc_ibfk_1` FOREIGN KEY (`broth_sample_id`) REFERENCES `broth_assoc` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mh_assoc`
+--
+ALTER TABLE `mh_assoc`
+  ADD CONSTRAINT `mh_assoc_ibfk_1` FOREIGN KEY (`colony_id`) REFERENCES `colonies` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mh_vial`
+--
+ALTER TABLE `mh_vial`
+  ADD CONSTRAINT `mh_vial_ibfk_1` FOREIGN KEY (`mh_id`) REFERENCES `mh_assoc` (`id`) ON UPDATE CASCADE;
+
+--
 -- Constraints for table `plate2`
 --
 ALTER TABLE `plate2`
-  ADD CONSTRAINT `fk_plate2_colony_id` FOREIGN KEY (`colony_id`) REFERENCES `colonies` (`id`);
+  ADD CONSTRAINT `plate2_ibfk_1` FOREIGN KEY (`mh_vial_id`) REFERENCES `mh_vial` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `plate3`
 --
 ALTER TABLE `plate3`
-  ADD CONSTRAINT `fk_plate3_colony_id` FOREIGN KEY (`colony_id`) REFERENCES `colonies` (`id`);
+  ADD CONSTRAINT `plate3_ibfk_1` FOREIGN KEY (`mh_vial_id`) REFERENCES `mh_vial` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `plate6`
 --
 ALTER TABLE `plate6`
-  ADD CONSTRAINT `fk_plate6_colony_id` FOREIGN KEY (`colony_id`) REFERENCES `colonies` (`id`);
+  ADD CONSTRAINT `plate6_ibfk_1` FOREIGN KEY (`mh_vial_id`) REFERENCES `mh_vial` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `plate45`

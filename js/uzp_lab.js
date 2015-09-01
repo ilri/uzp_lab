@@ -170,11 +170,62 @@ Uzp.prototype.receiveSampleKeypress = function(event){
    var keycode = (event.keyCode ? event.keyCode : event.which);
 	if(keycode === 13){
 		// an enter was pressed, lets save this particular sample
-      if(uzp_lab.module === 'step1') uzp.saveReceivedSample();
-      else if(uzp_lab.module === 'step2') uzp.saveBrothSample();
-      else if(uzp_lab.module === 'step3') uzp.saveMcConkyPlate();
-      else if(uzp_lab.module === 'step4') uzp.saveColonies();
-      else if(uzp_lab.module === 'step5.1') uzp.saveColoniesPositions();
+      if(uzp_lab.module === 'step1') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveReceivedSample();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step2') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveBrothSample();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step3') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveMcConkyPlate();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step4') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveColonies();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step4.1') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveMh();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step4.2') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveMhVial();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
+      else if(uzp_lab.module === 'step5.1') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.saveColoniesPositions();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
       else if(uzp_lab.module === 'step5') {
          if($("[name=sample]").is(":focus")) {
             uzp.savePlate2();
@@ -392,6 +443,142 @@ Uzp.prototype.saveBrothSample = function(){
    // seems all is well, lets save the sample
    $.ajax({
       type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {field_sample: uzp.prevSample, broth_sample: uzp.curSample, cur_user: cur_user},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ uzp.prevSample +'=>'+uzp.curSample +"<br />");
+         }
+     }
+  });
+};
+
+Uzp.prototype.saveMh = function() {
+   // get the sample format and the received sample
+   var colony_format = $('[name=colony_format]').val(), plate_format = $('[name=plate_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the sample to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(plate_format === '' || plate_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the plate.', 'error');
+      $("[name=colony_format]").focus();
+      return;
+   }
+   if(colony_format === '' || colony_format === undefined){
+      uzp.showNotification('Please scan a colony barcode.', 'error');
+      $("[name=colony_format]").focus();
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+
+   //lets validate the aliquot format
+   var s_regex = uzp.createSampleRegex(colony_format);
+   var b_regex = uzp.createSampleRegex(plate_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(s_regex.test(sample) === true){ curSampleType = 'colony_sample'; }          // we have a field sample
+   else if(b_regex.test(sample) === true){ curSampleType = 'mh_sample'; }     // we have a broth sample
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
+      uzp.prevSampleType = undefined; uzp.curSampleType = undefined;
+      uzp.prevSample = undefined; uzp.curSample = undefined;
+      return;
+   }
+
+   uzp.prevSampleType = uzp.curSampleType;
+   uzp.curSampleType = curSampleType;
+   uzp.prevSample = uzp.curSample;  // move the previous current sample to the previous sample
+   uzp.curSample = sample;
+
+   var res = uzp.validateScannedSamples({firstSample: 'colony_sample', secondSample: 'mh_sample'});
+   if(res === 1){ return; }
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony_sample: uzp.prevSample, mh_sample: uzp.curSample, cur_user: cur_user},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the sample well... lets prepare for the next sample
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ uzp.prevSample +'=>'+uzp.curSample +"<br />");
+         }
+     }
+  });
+};
+
+Uzp.prototype.saveMhVial = function() {
+   // get the sample format and the received sample
+   var colony_format = $('[name=colony_format]').val(), plate_format = $('[name=plate_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;
+
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the sample to save.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+   if(plate_format === '' || plate_format === undefined){
+      uzp.showNotification('Please scan a sample barcode for the plate.', 'error');
+      $("[name=colony_format]").focus();
+      return;
+   }
+   if(colony_format === '' || colony_format === undefined){
+      uzp.showNotification('Please scan a colony barcode.', 'error');
+      $("[name=colony_format]").focus();
+      return;
+   }
+   if(cur_user === '0'){
+      uzp.showNotification('Please select the current user.', 'error');
+      return;
+   }
+
+   //lets validate the aliquot format
+   var s_regex = uzp.createSampleRegex(colony_format);
+   var b_regex = uzp.createSampleRegex(plate_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(s_regex.test(sample) === true){ curSampleType = 'colony_sample'; }          // we have a field sample
+   else if(b_regex.test(sample) === true){ curSampleType = 'mh_sample'; }     // we have a broth sample
+   else{
+      // we don't know the sample format...so reject it and invalidate all the other settings
+      uzp.showNotification('Error! Unknown format for the entered sample.'+sample, 'error');
+      $("[name=sample]").focus().val('');
+      uzp.prevSampleType = undefined; uzp.curSampleType = undefined;
+      uzp.prevSample = undefined; uzp.curSample = undefined;
+      return;
+   }
+
+   uzp.prevSampleType = uzp.curSampleType;
+   uzp.curSampleType = curSampleType;
+   uzp.prevSample = uzp.curSample;  // move the previous current sample to the previous sample
+   uzp.curSample = sample;
+
+   var res = uzp.validateScannedSamples({firstSample: 'colony_sample', secondSample: 'mh_sample'});
+   if(res === 1){ return; }
+
+   // seems all is well, lets save the sample
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony_sample: uzp.prevSample, mh_sample: uzp.curSample, cur_user: cur_user},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');
