@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Sep 01, 2015 at 03:41 PM
+-- Generation Time: Sep 02, 2015 at 07:32 AM
 -- Server version: 5.6.24
 -- PHP Version: 5.6.11
 
@@ -552,6 +552,7 @@ ALTER TABLE `mcconky_assoc`
 --
 ALTER TABLE `mh2_assoc`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mh` (`mh`),
   ADD KEY `plate_2_id` (`plate2_id`);
 
 --
@@ -559,6 +560,7 @@ ALTER TABLE `mh2_assoc`
 --
 ALTER TABLE `mh3_assoc`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mh` (`mh`),
   ADD KEY `plate3_id` (`plate3_id`);
 
 --
@@ -566,6 +568,7 @@ ALTER TABLE `mh3_assoc`
 --
 ALTER TABLE `mh6_assoc`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mh` (`mh`),
   ADD KEY `plate_6_id` (`plate6_id`);
 
 --
@@ -573,6 +576,7 @@ ALTER TABLE `mh6_assoc`
 --
 ALTER TABLE `mh_assoc`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mh` (`mh`),
   ADD KEY `colony_id` (`colony_id`);
 
 --
@@ -580,6 +584,7 @@ ALTER TABLE `mh_assoc`
 --
 ALTER TABLE `mh_vial`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mh_vial` (`mh_vial`),
   ADD KEY `mh_id` (`mh_id`);
 
 --
