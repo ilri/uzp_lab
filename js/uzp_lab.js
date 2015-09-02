@@ -43,12 +43,15 @@ Uzp.prototype.biochemTestLogic = function() {
    $("#res1").hide();
    $("#res2").hide();
    $("#res3").hide();
+   $("#res4").hide();
    $("#res1").find('br').remove();
    $("#res2").find('br').remove();
    $("#res3").find('br').remove();
+   $("#res4").find('br').remove();
    $("[name=res1_select]").remove();
    $("[name=res2_select]").remove();
    $("[name=res3_select]").remove();
+   $("[name=res4_select]").remove();
    $("[class=test_oblabels]").remove();
    if($("#testId").val() === "tsi") {
       /* Test 1: slant color
@@ -72,16 +75,22 @@ Uzp.prototype.biochemTestLogic = function() {
       $("#res1_label").html("Color");
       $("#res1").append(uzp.createOptionList("res1_select", ["Yellow", "Not Yellow"], ["yellow", "not_yellow"]));
    }
-   if($("#testId").val() === "mio") {
+   if($("#testId").val() === "mil") {
       /* Test 1: Motile
        * Test 2: Color
        */
       $("#res1").show();
       $("#res1_label").html("Motile");
-      $("#res1").append(uzp.createOptionList("res1_select", ["Yes", "No"], ["yes", "no"]));
+      $("#res1").append(uzp.createOptionList("res1_select", ["Growth Away from stab line", "Growth on stab line"], ["growth_away_stab", "growth_only_stab_line"]));
       $("#res2").show();
-      $("#res2_label").html("Color");
-      $("#res2").append(uzp.createOptionList("res2_select", ["Pink", "Not pink"], ["pink", "not_pink"]));
+      $("#res2_label").html("Indole");
+      $("#res2").append(uzp.createOptionList("res2_select", ["Reagent layer pink/red", "Reagent layer bright yellow"], ["pink", "yellow"]));
+      $("#res3").show();
+      $("#res3_label").html("Lysine Decarboxylation");
+      $("#res3").append(uzp.createOptionList("res3_select", ["Purple butt", "Yellow butt"], ["purple_butt", "yellow_butt"]));
+      $("#res4").show();
+      $("#res4_label").html("Lysine Deamination");
+      $("#res4").append(uzp.createOptionList("res4_select", ["Red band", "Purple band"], ["red_band", "purple_band"]));
    }
    if($("#testId").val() === "citrate") {
       /* Test 1: Growth

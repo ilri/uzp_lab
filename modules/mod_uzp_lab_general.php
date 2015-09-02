@@ -597,6 +597,7 @@ class Uzp extends DBase{
          <div id="res1" style='display: table; margin-left: 160px;'><label id="res1_label" style="display: inline-block;width: 150px;"></label></div> <br />
          <div id="res2" style='display: table; margin-left: 160px;'><label id="res2_label" style="display: inline-block;width: 150px;"></label></div> <br />
          <div id="res3" style='display: table; margin-left: 160px;'><label id="res3_label" style="display: inline-block;width: 150px;"></label></div> <br />
+         <div id="res4" style='display: table; margin-left: 160px;'><label id="res4_label" style="display: inline-block;width: 150px;"></label></div> <br />
 
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
@@ -1224,8 +1225,8 @@ class Uzp extends DBase{
    }
 
    private function bioChemicalTestCombo(){
-      $userVals = array('TSI', 'Urea', 'MIO', 'Citrate');
-      $userIds = array('tsi', 'urea', 'mio', 'citrate');
+      $userVals = array('TSI', 'Urea', 'MIL', 'Citrate');
+      $userIds = array('tsi', 'urea', 'mil', 'citrate');
       $settings = array('items' => $userVals, 'values' => $userIds, 'firstValue' => 'Select One', 'name' => 'tests', 'id' => 'testId', 'class' => 'input-medium');
       $userCombo = GeneralTasks::PopulateCombo($settings);
 
