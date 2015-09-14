@@ -178,13 +178,16 @@ class Uzp extends DBase{
          $this->logAccess();
          $this->homePage();
       }
-	  elseif(OPTIONS_REQUESTED_MODULE == 'dump') {
+	   elseif(OPTIONS_REQUESTED_MODULE == 'dump') {
          $this->dumpData();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'view') {
+         $this->viewData();
       }
    }
 
    private function dumpData() {
-        if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
+      if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
 		$date = new DateTime();
 		$filename = Config::$config['rootdir']."\downloads\99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
 		$zipName = $filename.".zip";
@@ -204,6 +207,79 @@ class Uzp extends DBase{
 		ob_clean();
 		flush();
 		readfile($zipName);
+		return;
+   }
+   
+   /**
+    * This function exports the data as an excel file
+    */
+   private function viewData() {
+      include_once OPTIONS_COMMON_FOLDER_PATH.'PHPExcel/Classes/PHPExcel.php';
+      $date = new DateTime();
+      $filename = "99HH Database ".$date->format('Y-m-d H-i-s');
+      $excelObject = new PHPExcel();
+      $excelObject->getProperties()->setCreator("Azizi Biorepository");
+      $excelObject->getProperties()->setLastModifiedBy("Azizi Biorepository");
+      $excelObject->getProperties()->setTitle($filename);
+      $excelObject->getProperties()->setSubject("Generated using the 99HH database system");
+      $excelObject->getProperties()->setDescription("This Excel file has been generated using the 99HH database system that utilizes the PHPExcel library on PHP");
+      $query = "show tables";
+      $result = $this->Dbase->ExecuteQuery($query);
+      if(is_array($result)) {
+         $tableNames = array();
+         foreach($result as $currResult) {
+            $currKeys = array_keys($currResult);
+            $tableNames[] = $currResult[$currKeys[0]];
+         }
+         $this->Dbase->CreateLogEntry(print_r($tableNames, TRUE), "info");
+         $isFirst = true;
+         $sheetIndex = 0;
+         foreach($tableNames as $currTableName) {
+            $query = "select * from $currTableName";
+            $tableData = $this->Dbase->ExecuteQuery($query);
+            if(is_array($tableData) && count($tableData) > 0){
+               
+               $tableColumns = array_keys($tableData[0]);
+               if($isFirst == true) {
+                  $isFirst = false;
+               }
+               else {
+                  $excelObject->createSheet();
+                  $excelObject->setActiveSheetIndex($sheetIndex);
+               }
+               $excelObject->getActiveSheet()->setTitle($currTableName);
+               
+               //write the column names
+               for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
+                  $headingCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex)."1";
+                  $excelObject->getActiveSheet()->setCellValue($headingCell, $tableColumns[$columnIndex]);
+                  $excelObject->getActiveSheet()->getColumnDimension(PHPExcel_Cell::stringFromColumnIndex($columnIndex))->setAutoSize(true);
+                  $excelObject->getActiveSheet()->getStyle($headingCell)->getFont()->setBold(TRUE);
+                  for($rowIndex = 0; $rowIndex < count($tableData); $rowIndex++) {
+                     $rowName = $rowIndex + 2;
+                     $dataCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex).$rowName;
+                     $excelObject->getActiveSheet()->setCellValue($dataCell, $tableData[$rowIndex][$tableColumns[$columnIndex]]);
+                  }
+               }
+               $sheetIndex++;
+            }
+         }
+      }
+      $excelObject->setActiveSheetIndex(0);
+      $objWriter = new PHPExcel_Writer_Excel2007($excelObject);
+      if(!file_exists(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads")) mkdir(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads");
+      $objWriter->save(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx');
+      
+      header('Content-Description: File Transfer');
+		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header("Content-Disposition: attachment; filename=".basename($filename.'.xlsx'));
+		//header('Content-Transfer-Encoding: binary');
+		//header('Pragma: public');
+		header('Content-Length: '.filesize(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx'));
+		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+		ob_clean();
+		flush();
+		readfile(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx');
 		return;
    }
 
@@ -246,6 +322,7 @@ class Uzp extends DBase{
          <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
          <div><br /><b>Miscellaneous</b></div>
          <li><a href="?page=dump">Backup database</a></li>
+         <li><a href="?page=view">View database data</a></li>
          <!--li><a href="?page=step13">Eppendorf / DNA Extract -> Archive (13)</a></li-->
       </ul>
    </div>

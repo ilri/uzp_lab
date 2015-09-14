@@ -33,6 +33,7 @@
     "jquery-flexigrid": "~1.1.5",
     "jquery-md5": "*",
     "azizi-shared-libs": "https://github.com/ilri/azizi-shared-libs.git",
-    "datePicker": "https://github.com/freqdec/datePicker.git"
+    "datePicker": "https://github.com/freqdec/datePicker.git",
+    "PHPExcel": "https://github.com/PHPOffice/PHPExcel.git#1.8.0"
   }
 }
