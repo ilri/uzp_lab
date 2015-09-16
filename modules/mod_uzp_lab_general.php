@@ -258,22 +258,37 @@ class Uzp extends DBase{
          //$this->Dbase->CreateLogEntry($query, "fatal");
          $result = $this->Dbase->ExecuteQuery($query);
          if(is_array($result) && count($result) > 0) {
-            $tableColumns = array_keys($result[0]);
+            $tableColumns = array_reverse(array_keys($result[0]));
             if($sheetIndex > 0) {
                $excelObject->createSheet();
             }
             $excelObject->setActiveSheetIndex($sheetIndex);
             $sheetIndex++;
             $excelObject->getActiveSheet()->setTitle($currRootChild);
+            $lastColumn = explode("-", $tableColumns[0])[0];
+            $mainColumnCount = 0;
             for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
+               $currColumn = explode("-", $tableColumns[$columnIndex])[0];
+               if($currColumn != $lastColumn) {
+                  $mainColumnCount++;
+                  $lastColumn = $currColumn;
+               }
+               if(($mainColumnCount % 2) == 0) {//even
+                  $bgColour = "EDF1C1";
+               }
+               else {
+                  $bgColour = "BA875D";
+               }
                $headingCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex)."1";
                $excelObject->getActiveSheet()->setCellValue($headingCell, $tableColumns[$columnIndex]);
                $excelObject->getActiveSheet()->getColumnDimension(PHPExcel_Cell::stringFromColumnIndex($columnIndex))->setAutoSize(true);
                $excelObject->getActiveSheet()->getStyle($headingCell)->getFont()->setBold(TRUE);
+               $excelObject->getActiveSheet()->getStyle($headingCell)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB($bgColour);
                for($rowIndex = 0; $rowIndex < count($result); $rowIndex++) {
                   $rowName = $rowIndex + 2;
                   $dataCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex).$rowName;
                   $excelObject->getActiveSheet()->setCellValue($dataCell, $result[$rowIndex][$tableColumns[$columnIndex]]);
+                  $excelObject->getActiveSheet()->getStyle($dataCell)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB($bgColour);
                }
             }
          }
