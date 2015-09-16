@@ -184,6 +184,7 @@ class Uzp extends DBase{
       elseif(OPTIONS_REQUESTED_MODULE == 'view') {
          if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getEColiData();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_excel') $this->donwloadExcelData();
       }
    }
 
@@ -216,6 +217,30 @@ class Uzp extends DBase{
     */
    private function donwloadExcelData() {
       include_once OPTIONS_COMMON_FOLDER_PATH.'PHPExcel/Classes/PHPExcel.php';
+      $foreignKeys = array(
+         "ast_result" => array("column" => "plate45_id", "parent" => "plate45", "parent_column" => "plate", "parent_id" => "id"),
+         "biochemical_test" => array("column" => "mh2_id", "parent" => "mh2_assoc", "parent_column" => "mh", "parent_id" => "id"),
+         "biochemical_test_results" => array("column" => "media_id", "parent" => "biochemical_test", "parent_column" => "media", "parent_id" => "id"),
+         "broth_assoc" => array("column" => "field_sample_id", "parent" => "received_samples", "parent_column" => "sample", "parent_id" => "id"),
+         "campy_bootsock_assoc" => array("column" => "bootsock_id", "parent" => "campy_received_bootsocks", "parent_column" => "sample", "parent_id" => "id"),
+         "campy_colonies" => array("column" => "colony", "parent" => "campy_mccda_growth", "parent_column" => "am_plate", "parent_id" => "am_plate"),
+         "campy_cryovials" => array("column" => "falcon_id", "parent" => "campy_bootsock_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
+         "campy_mccda_assoc" => array("column" => "falcon_id", "parent" => "campy_bootsock_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
+         "campy_mccda_growth" => array("column" => "mccda_plate_id", "parent" => "campy_mccda_assoc", "parent_column" => "plate1_barcode", "parent_id" => "id"),
+         "colonies" => array("column" => "mcconky_plate_id", "parent" => "mcconky_assoc", "parent_column" => "plate1_barcode", "parent_id" => "id"),
+         "dna_eppendorfs" => array("column" => "mh6_id", "parent" => "mh6_assoc", "parent_column" => "mh", "parent_id" => "id"),
+         "mcconky_assoc" => array("column" => "broth_sample_id", "parent" => "broth_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
+         "mh2_assoc" => array("column" => "plate2_id", "parent" => "plate2", "parent_column" => "plate", "parent_id" => "id"),
+         "mh3_assoc" => array("column" => "plate3_id", "parent" => "plate3", "parent_column" => "plate3_id", "parent_id" => "id"),
+         "mh6_assoc" => array("column" => "plate6_id", "parent" => "plate6", "parent_column" => "plate", "parent_id" => "id"),
+         "mh_assoc" => array("column" => "colony_id", "parent" => "colonies", "parent_column" => "colony", "parent_id" => "id"),
+         "mh_vial" => array("column" => "mh_id", "parent" => "mh_assoc", "parent_column" => "mh", "parent_id" => "id"),
+         "plate2" => array("column" => "mh_vial_id", "parent" => "mh_vial", "parent_column" => "mh_vial", "parent_id" => "id"),
+         "plate3" => array("column" => "mh_vial_id", "parent" => "mh_vial", "parent_column" => "mh_vial", "parent_id" => "id"),
+         "plate6" => array("column" => "mh_vial_id", "parent" => "mh_vial", "parent_column" => "mh_vial", "parent_id" => "id"),
+         "plate45" => array("column" => "mh3_id", "parent" => "mh3_assoc", "parent_column" => "mh", "parent_id" => "id")
+      );
+      $children = array("ast_result", "biochemical_test_results", "campy_colonies", "campy_cryovials", "dna_eppendorfs");
       $date = new DateTime();
       $filename = "99HH Database ".$date->format('Y-m-d H-i-s');
       $excelObject = new PHPExcel();
@@ -224,46 +249,37 @@ class Uzp extends DBase{
       $excelObject->getProperties()->setTitle($filename);
       $excelObject->getProperties()->setSubject("Generated using the 99HH database system");
       $excelObject->getProperties()->setDescription("This Excel file has been generated using the 99HH database system that utilizes the PHPExcel library on PHP");
-      $query = "show tables";
-      $result = $this->Dbase->ExecuteQuery($query);
-      if(is_array($result)) {
-         $tableNames = array();
-         foreach($result as $currResult) {
-            $currKeys = array_keys($currResult);
-            $tableNames[] = $currResult[$currKeys[0]];
-         }
-         $this->Dbase->CreateLogEntry(print_r($tableNames, TRUE), "info");
-         $isFirst = true;
-         $sheetIndex = 0;
-         foreach($tableNames as $currTableName) {
-            $query = "select * from $currTableName";
-            $tableData = $this->Dbase->ExecuteQuery($query);
-            if(is_array($tableData) && count($tableData) > 0){
-               
-               $tableColumns = array_keys($tableData[0]);
-               if($isFirst == true) {
-                  $isFirst = false;
-               }
-               else {
-                  $excelObject->createSheet();
-                  $excelObject->setActiveSheetIndex($sheetIndex);
-               }
-               $excelObject->getActiveSheet()->setTitle($currTableName);
-               
-               //write the column names
-               for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
-                  $headingCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex)."1";
-                  $excelObject->getActiveSheet()->setCellValue($headingCell, $tableColumns[$columnIndex]);
-                  $excelObject->getActiveSheet()->getColumnDimension(PHPExcel_Cell::stringFromColumnIndex($columnIndex))->setAutoSize(true);
-                  $excelObject->getActiveSheet()->getStyle($headingCell)->getFont()->setBold(TRUE);
-                  for($rowIndex = 0; $rowIndex < count($tableData); $rowIndex++) {
-                     $rowName = $rowIndex + 2;
-                     $dataCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex).$rowName;
-                     $excelObject->getActiveSheet()->setCellValue($dataCell, $tableData[$rowIndex][$tableColumns[$columnIndex]]);
-                  }
-               }
-               $sheetIndex++;
+      $sheetIndex = 0;
+      foreach($children as $currRootChild) {
+         $queryDetails = $this->getCascadingQuery("", "", $currRootChild, $foreignKeys);
+         $select = $queryDetails['select'];
+         $from = $queryDetails['from'];
+         $query = "select ".$select." from ".$from;
+         //$this->Dbase->CreateLogEntry($query, "fatal");
+         $result = $this->Dbase->ExecuteQuery($query);
+         if(is_array($result) && count($result) > 0) {
+            $tableColumns = array_keys($result[0]);
+            if($sheetIndex > 0) {
+               $excelObject->createSheet();
             }
+            $excelObject->setActiveSheetIndex($sheetIndex);
+            $sheetIndex++;
+            $excelObject->getActiveSheet()->setTitle($currRootChild);
+            for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
+               $headingCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex)."1";
+               $excelObject->getActiveSheet()->setCellValue($headingCell, $tableColumns[$columnIndex]);
+               $excelObject->getActiveSheet()->getColumnDimension(PHPExcel_Cell::stringFromColumnIndex($columnIndex))->setAutoSize(true);
+               $excelObject->getActiveSheet()->getStyle($headingCell)->getFont()->setBold(TRUE);
+               for($rowIndex = 0; $rowIndex < count($result); $rowIndex++) {
+                  $rowName = $rowIndex + 2;
+                  $dataCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex).$rowName;
+                  $excelObject->getActiveSheet()->setCellValue($dataCell, $result[$rowIndex][$tableColumns[$columnIndex]]);
+               }
+            }
+         }
+         else {
+            $this->Dbase->CreateLogEntry("Could not execute query", "fatal");
+            $this->Dbase->CreateLogEntry($this->Dbase->lastError, "fatal");
          }
       }
       $excelObject->setActiveSheetIndex(0);
@@ -284,6 +300,31 @@ class Uzp extends DBase{
 		return;
    }
    
+   private function getCascadingQuery($select, $from, $currTable, $tableAssoc, $child = null) {
+      $query = "desc $currTable";
+      $result = $this->Dbase->ExecuteQuery($query);
+      $columns = "";
+      foreach($result as $currResult) {
+         if($currResult['Field'] != 'id' && !$this->endsWith($currResult['Field'], "id")) {
+            if(strlen($columns) == 0) $columns = $currTable.".".$currResult['Field']." as `".$currTable."-".$currResult['Field']."`";
+            else $columns .= ", ".$currTable.".".$currResult['Field']." as `".$currTable."-".$currResult['Field']."`";
+         }
+      }
+      if(strlen($select) == 0)$select = $columns;
+      else $select .= ", ".$columns;
+      if(strlen($from) == 0) $from = $currTable;
+      else if($child != null) $from .= " right join ".$currTable." on ".$child.".".$tableAssoc[$child]['column']." = ".$currTable.".".$tableAssoc[$child]['parent_id'];
+      if(isset($tableAssoc[$currTable])) {
+         $parentData = $this->getCascadingQuery($select, $from, $tableAssoc[$currTable]['parent'], $tableAssoc, $currTable);
+         $select = $parentData['select'];
+         $from = $parentData['from'];
+      }
+      return array("select" => $select, "from" => $from);
+   }
+   private function endsWith($haystack, $needle) {
+      return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
+   }
+   
    private function viewData() {
 ?>
 <script type="text/javascript" src="js/view_lab.js"></script>
@@ -302,6 +343,8 @@ class Uzp extends DBase{
 <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.selection.js"></script>
 <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.filter.js"></script>
 <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.export.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.export.js"></script>
 <div id="lab_view">
    <select id="table_to_show">
       <option value="ecoli_table1">Biochemical Results</option>

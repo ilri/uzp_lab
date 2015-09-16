@@ -72,6 +72,18 @@ LabView.prototype.initEColiTable1 = function() {
       source: source,
       rowdetails: true,
       initrowdetails: window.lv.initEColiTable2,
+      pageable: true,
+      autoheight: true,
+      sortable: true,
+      showfilterrow: false,
+      autoshowfiltericon: true,
+      showstatusbar: true,
+      renderstatusbar: window.lv.gridStatusBar,
+      filterable: true,
+      touchmode: false,
+      enabletooltips: false,
+      pagesize: 20,
+      pagesizeoptions: ['20', '50', '100'],
       columns: [
         { datafield: 'id_received_samples_id', hidden: true },
         { text: 'Date Received', datafield: 'received_samples_datetime_received', width: 130 },
@@ -86,7 +98,30 @@ LabView.prototype.initEColiTable1 = function() {
    });
 };
 
+/**
+ * Initiate the rendering of the status bar in the animal grid
+ * @returns {undefined}
+ */
+LabView.prototype.gridStatusBar = function(statusbar){
+   var container = $("<div style='overflow: hidden; position: relative; margin: 5px;'></div>");
+   var excelButton = $("<div class='status_bar_div'><img style='position: relative; margin-top: 2px;' src='images/excel.png'/><span class='status_bar_span'>Export</span></div>");
+
+   container.append(excelButton);
+   excelButton.jqxButton({  width: 80, height: 20 });
+   statusbar.append(container);
+
+   excelButton.click(function (event) {
+       window.location = "mod_ajax.php?page=view&do=get_excel";
+   });
+
+   /*$('#showAllId').on('change', function(){
+      animals.showAll = $('#showAllId')[0].checked;
+      animals.initiateAnimalsGrid();
+   });*/
+};
+
 LabView.prototype.initEColiTable2 = function(index, parentElement, gridElement, record) {
+   console.log("called");
    var id = record.mcconky_assoc_id;
    var grid = $($(parentElement).children()[0]);
    var gridId = grid.attr('id');
