@@ -240,7 +240,18 @@ class Uzp extends DBase{
          "plate6" => array("column" => "mh_vial_id", "parent" => "mh_vial", "parent_column" => "mh_vial", "parent_id" => "id"),
          "plate45" => array("column" => "mh3_id", "parent" => "mh3_assoc", "parent_column" => "mh", "parent_id" => "id")
       );
-      $children = array("ast_result", "biochemical_test_results", "campy_colonies", "campy_cryovials", "dna_eppendorfs");
+      $replaceHeadings = array(
+         "broth_assoc" => "broth",
+         "mcconky_assoc" => "primary_plate",
+         "colonies" => "primary_plate_colonies",
+         "mh_assoc" => "muller_hinton",
+         "mh_vial" => "archived_vial",
+         "mh3_assoc" => "plate3_muller_hinton",
+         "mh2_assoc" => "plate2_muller_hinton",
+         "mh6_assoc" => "plate6_muller_hinton",
+         "campy_bootsock_assoc" => "campy_falcon_tube"
+      );
+      $children = array("biochemical_test_results", "ast_result", "dna_eppendorfs", "campy_colonies", "campy_cryovials");
       $date = new DateTime();
       $filename = "99HH Database ".$date->format('Y-m-d H-i-s');
       $excelObject = new PHPExcel();
@@ -268,7 +279,8 @@ class Uzp extends DBase{
             $lastColumn = explode("-", $tableColumns[0])[0];
             $mainColumnCount = 0;
             for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
-               $currColumn = explode("-", $tableColumns[$columnIndex])[0];
+               $explodedHeading = explode("-", $tableColumns[$columnIndex]);
+               $currColumn = $explodedHeading[0];
                if($currColumn != $lastColumn) {
                   $mainColumnCount++;
                   $lastColumn = $currColumn;
@@ -277,10 +289,15 @@ class Uzp extends DBase{
                   $bgColour = "EDF1C1";
                }
                else {
-                  $bgColour = "BA875D";
+                  $bgColour = "DCAF86";
+               }
+               $readableHeading = $tableColumns[$columnIndex];
+               $this->Dbase->CreateLogEntry($explodedHeading[0],"fatal");
+               if(isset($replaceHeadings[$explodedHeading[0]]) == true) {
+                  $readableHeading = $replaceHeadings[$explodedHeading[0]]."-".$explodedHeading[1];
                }
                $headingCell = PHPExcel_Cell::stringFromColumnIndex($columnIndex)."1";
-               $excelObject->getActiveSheet()->setCellValue($headingCell, $tableColumns[$columnIndex]);
+               $excelObject->getActiveSheet()->setCellValue($headingCell, $readableHeading);
                $excelObject->getActiveSheet()->getColumnDimension(PHPExcel_Cell::stringFromColumnIndex($columnIndex))->setAutoSize(true);
                $excelObject->getActiveSheet()->getStyle($headingCell)->getFont()->setBold(TRUE);
                $excelObject->getActiveSheet()->getStyle($headingCell)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB($bgColour);
