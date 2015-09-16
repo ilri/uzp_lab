@@ -182,7 +182,8 @@ class Uzp extends DBase{
          $this->dumpData();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'view') {
-         $this->viewData();
+         if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getEColiData();
       }
    }
 
@@ -213,7 +214,7 @@ class Uzp extends DBase{
    /**
     * This function exports the data as an excel file
     */
-   private function viewData() {
+   private function donwloadExcelData() {
       include_once OPTIONS_COMMON_FOLDER_PATH.'PHPExcel/Classes/PHPExcel.php';
       $date = new DateTime();
       $filename = "99HH Database ".$date->format('Y-m-d H-i-s');
@@ -281,6 +282,166 @@ class Uzp extends DBase{
 		flush();
 		readfile(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx');
 		return;
+   }
+   
+   private function viewData() {
+?>
+<script type="text/javascript" src="js/view_lab.js"></script>
+<link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxscrollbar.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxmenu.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxcheckbox.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxlistbox.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdropdownlist.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.sort.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.pager.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.selection.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.filter.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+<div id="lab_view">
+   <select id="table_to_show">
+      <option value="ecoli_table1">Biochemical Results</option>
+      <option value="ecoli2_table1">AST Results</option>
+      <option value="ecoli3_table1">DNA Sequencing</option>
+      <option value="campy_table1">Campy Cryovials</option>
+      <option value="campy2_table1">Campy MCCDA</option>
+   </select>
+   <div id="ecoli_table1_hd"><h3>Biochemical tests</h3></div>
+   <div id="ecoli_table1">&nbsp;</div>
+   <div id="ecoli2_table1_hd"><h3>AST Results</h3></div>
+   <div id="ecoli2_table1">&nbsp;</div>
+   <div id="ecoli3_table1_hd"><h3>DNA Sequencing</h3></div>
+   <div id="ecoli3_table1">&nbsp;</div>
+   <div id="campy_table1_hd"><h3>Campy Cryovials</h3></div>
+   <div id="campy_table1">&nbsp;</div>
+   <div id="campy2_table1_hd"><h3>Campy MCCDA</h3></div>
+   <div id="campy2_table1">&nbsp;</div>
+</div>
+<script type="text/javascript">
+   $(document).ready(function(){
+      console.log("bam");
+      var lv = new LabView();
+   });
+</script>
+   <?php
+   }
+   
+   private function getEColiData() {
+      $dataType = $_REQUEST['type'];
+      if($dataType == "table1") {
+         $query = "select a.id received_samples_id, a.for_sequencing received_samples_for_sequencing, a.sample received_samples_sample, a.user received_samples_user, a.datetime_received received_samples_datetime_received,"
+               . "b.broth_sample broth_assoc_broth_sample, b.datetime_added broth_assoc_datetime_added, b.field_sample_id broth_assoc_field_sample_id, b.user broth_assoc_user, b.id broth_assoc_id,"
+               . "c.id mcconky_assoc_id, c.datetime_added mcconky_assoc_datetime_added, c.media_used mcconky_assoc_media_used, c.no_qtr_colonies mcconky_assoc_no_qtr_colonies, c.plate1_barcode mcconky_assoc_plate1_barcode"
+               . " from received_samples as a"
+               . " left join broth_assoc as b on a.id = b.field_sample_id"
+               . " left join mcconky_assoc as c on b.id = c.broth_sample_id";
+         $result = $this->Dbase->ExecuteQuery($query);
+      }
+      else if($dataType == 'table2') {
+         $id = $_REQUEST['id'];
+         $query = "select b.id colonies_id, b.datetime_saved colonies_datetime_saved, b.colony colonies_colony, b.user colonies_user,"
+               . "c.datetime_added mh_assoc_datetime_added, c.mh mh_assoc_mh, c.user mh_assoc_user,"
+               . "d.id mh_vial_id, d.datetime_saved mh_vial_datetime_saved, d.box mh_vial_box, d.mh_vial mh_vial_mh_vial, d.position_in_box mh_vial_position_in_box, d.pos_saved_by mh_vial_pos_saved_by, d.user mh_vial_user"
+               . " from colonies as b"
+               . " left join mh_assoc as c on b.id = c.colony_id"
+               . " left join mh_vial as d on c.id = d.mh_id"
+               . " where b.mcconky_plate_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table3') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id plate2_id, a.datetime_added plate2_datetime_added, a.plate plate2_plate, a.user plate2_user,"
+               . "b.datetime_added mh2_assoc_datetime_added, b.mh mh2_assoc_mh, b.user mh2_assoc_user, b.id mh2_assoc_id"
+               . " from plate2 as a"
+               . " left join mh2_assoc as b on a.id = b.plate2_id"
+               . " where a.mh_vial_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table4') {
+         $id = $_REQUEST['id'];
+         $query = "select a.datetime_added biochemical_test_datetime_added ,  a.media biochemical_test_media ,  a.user biochemical_test_user ,  a.id biochemical_test_id"
+               . " from biochemical_test as a"
+               . " where a.mh2_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table5') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id biochemical_test_results_id,  a.datetime_added biochemical_test_results_datetime_added,  a.observ_type biochemical_test_results_observ_type, a.observ_value biochemical_test_results_observ_value, a.test biochemical_test_results_test, a.user biochemical_test_results_user"
+               . " from biochemical_test_results as a"
+               . " where a.media_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table2-3') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id plate3_id, a.datetime_added plate3_datetime_added, a.plate plate3_plate, a.user plate3_user,"
+               . "b.datetime_added mh3_assoc_datetime_added, b.mh mh3_assoc_mh, b.user mh3_assoc_user, b.id mh3_assoc_id"
+               . " from plate3 as a"
+               . " left join mh3_assoc as b on a.id = b.plate3_id"
+               . " where a.mh_vial_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table3-3') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id plate6_id, a.datetime_added plate6_datetime_added, a.plate plate6_plate, a.user plate6_user,"
+               . "b.datetime_added mh6_assoc_datetime_added, b.mh mh6_assoc_mh, b.user mh6_assoc_user, b.id mh6_assoc_id,"
+               . "c.eppendorf as dna_eppendorfs_eppendorf, c.user as dna_eppendorfs_user"
+               . " from plate6 as a"
+               . " left join mh6_assoc as b on a.id = b.plate6_id"
+               . " left join dna_eppendorfs as c on b.id = c.mh6_id"
+               . " where a.mh_vial_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table2-4') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id plate45_id, a.datetime_added plate45_datetime_added, a.number plate45_number, a.plate plate45_plate, a.user plate45_user"
+               . " from plate45 as a"
+               . " where a.mh3_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'table2-5') {
+         $id = $_REQUEST['id'];
+         $query = "select a.id ast_result_id,  a.datetime_added ast_result_datetime_added,  a.drug ast_result_drug, a.user ast_result_user, a.value ast_result_value"
+               . " from ast_result as a"
+               . " where a.plate45_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      else if($dataType == 'campy1') {
+         $query = "select a.id campy_received_bootsocks_id, a.datetime_received campy_received_bootsocks_datetime_received, a.for_sequencing campy_received_bootsocks_for_sequencing, a.sample campy_received_bootsocks_sample, a.user campy_received_bootsocks_user,"
+               . "b.id campy_bootsock_assoc_id, b.daughter_sample campy_bootsock_assoc_daughter_sample, b.datetime_added campy_bootsock_assoc_datetime_added, b.user campy_bootsock_assoc_user,"
+               . "c.cryovial campy_cryovials_cryovial, c.datetime_saved campy_cryovials_datetime_saved, c.id campy_cryovials_id, c.position_in_box campy_cryovials_position_in_box, c.user campy_cryovials_user, c.box campy_cryovials_box"
+               . " from campy_received_bootsocks as a"
+               . " left join campy_bootsock_assoc as b on a.id = b.bootsock_id"
+               . " left join campy_cryovials as c on b.id = c.falcon_id";
+         $result = $this->Dbase->ExecuteQuery($query);
+      }
+      else if($dataType == 'campy2-1') {
+         $query = "select a.id campy_received_bootsocks_id, a.datetime_received campy_received_bootsocks_datetime_received, a.for_sequencing campy_received_bootsocks_for_sequencing, a.sample campy_received_bootsocks_sample, a.user campy_received_bootsocks_user,"
+               . "b.id campy_bootsock_assoc_id, b.daughter_sample campy_bootsock_assoc_daughter_sample, b.datetime_added campy_bootsock_assoc_datetime_added, b.user campy_bootsock_assoc_user,"
+               . "c.datetime_added campy_mccda_assoc_datetime_added, c.plate1_barcode campy_mccda_assoc_plate1_barcode, c.user campy_mccda_assoc_user, c.id campy_mccda_assoc_id"
+               . " from campy_received_bootsocks as a"
+               . " left join campy_bootsock_assoc as b on a.id = b.bootsock_id"
+               . " left join campy_mccda_assoc as c on b.id = c.falcon_id";
+         $result = $this->Dbase->ExecuteQuery($query);
+      }
+      else if($dataType == 'campy2-2') {
+         $id = $_REQUEST['id'];
+         $query = "select a.am_plate campy_mccda_growth_am_plate, a.datetime_saved campy_mccda_growth_datetime_saved, a.user campy_mccda_growth_user,"
+               . "b.colony campy_colonies_colony, b.box campy_colonies_box, b.position_in_box campy_colonies_position_in_box, b.user campy_colonies_user"
+               . " from campy_mccda_growth as a"
+               . " left join campy_colonies as b on a.am_plate = b.colony"
+               . " where a.mccda_plate_id = :id";
+         $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
+      }
+      if(is_array($result)) {
+         die(json_encode($result));
+      }
+      else {
+         die(json_encode(array()));
+      }
    }
 
    /**
@@ -1758,7 +1919,7 @@ class Uzp extends DBase{
     */
    private function campyReceiptSave(){
       // time to save the received sample
-      $query = 'insert into campy_received_bootsocks(sample, user) values(:sample, :user, :for_sequencing)';
+      $query = 'insert into campy_received_bootsocks(sample, user, for_sequencing) values(:sample, :user, :for_sequencing)';
       $vals = array('sample' => $_POST['sample'], 'user' => $_POST['cur_user'], 'for_sequencing' => $_POST['for_sequencing']);
 
       $result = $this->Dbase->ExecuteQuery($query, $vals);
