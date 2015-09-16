@@ -183,7 +183,7 @@ class Uzp extends DBase{
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'view') {
          if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
-         else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getEColiData();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getLabData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_excel') $this->donwloadExcelData();
       }
    }
@@ -332,6 +332,18 @@ class Uzp extends DBase{
 		return;
    }
    
+   /**
+    * This recursive function constructs the select and from string of a query given the last cascading
+    * child and an array showing the cascading parents of all the tables
+    * 
+    * @param type $select     A string containing the already constructed select part of the query
+    * @param type $from       A string containing the already constructed from part of the query
+    * @param type $currTable  The table which we are going to append details from
+    * @param type $tableAssoc An associative array showing parent child associations between the tables with the child table name as the key
+    * @param type $child      The name of the child table for $currTable. Is optional
+    * 
+    * @return type   An associative array containing 'select' and 'from' as its keys
+    */
    private function getCascadingQuery($select, $from, $currTable, $tableAssoc, $child = null) {
       $query = "desc $currTable";
       $result = $this->Dbase->ExecuteQuery($query);
@@ -357,6 +369,9 @@ class Uzp extends DBase{
       return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
    }
    
+   /**
+    * This function renders the view data page
+    */
    private function viewData() {
 ?>
 <script type="text/javascript" src="js/view_lab.js"></script>
@@ -405,7 +420,10 @@ class Uzp extends DBase{
    <?php
    }
    
-   private function getEColiData() {
+   /**
+    * This function returns lab data requested for by a GET request
+    */
+   private function getLabData() {
       $dataType = $_REQUEST['type'];
       if($dataType == "table1") {
          $query = "select a.id received_samples_id, a.for_sequencing received_samples_for_sequencing, a.sample received_samples_sample, a.user received_samples_user, a.datetime_received received_samples_datetime_received,"
@@ -803,6 +821,9 @@ class Uzp extends DBase{
 <?php
    }
    
+   /**
+    * Renders the Plate2 to Muller Hinton page
+    */
    private function plate2ToMHSave() {
       $checkQuery = 'select id from plate2 where plate = :colony';
       $insertQuery = 'insert into mh2_assoc(plate2_id, mh, user) values(:field_sample_id, :broth_sample, :user)';
@@ -864,6 +885,9 @@ class Uzp extends DBase{
 <?php
    }
 
+   /**
+    * Renders the Biochemical test preperation page
+    */
    private function bioChemTestPrepSave() {
       $checkQuery = 'select id from mh2_assoc where mh = :plate';
       $insertQuery = 'insert into biochemical_test(mh2_id, media, user) values(:plate, :media, :user)';
@@ -887,6 +911,9 @@ class Uzp extends DBase{
 
    }
 
+   /**
+    * Renders the biochemical test result page
+    */
    private function bioChemTestResultHome(){
       $userCombo = $this->usersCombo();
       $testCombo = $this->bioChemicalTestCombo();
@@ -1070,6 +1097,9 @@ class Uzp extends DBase{
 <?php
    }
    
+   /**
+    * Renders the plate 3 to muller hinton to page
+    */
    private function plate3ToMHSave() {
       $checkQuery = 'select id from plate3 where plate = :colony';
       $insertQuery = 'insert into mh3_assoc(plate3_id, mh, user) values(:field_sample_id, :broth_sample, :user)';
@@ -1129,6 +1159,9 @@ class Uzp extends DBase{
 <?php
    }
    
+   /**
+    * Renders the plate 6 to muller hinton page
+    */
    private function plate6ToMHSave() {
       $checkQuery = 'select id from plate6 where plate = :colony';
       $insertQuery = 'insert into mh6_assoc(plate6_id, mh, user) values(:field_sample_id, :broth_sample, :user)';
@@ -1143,6 +1176,9 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /**
+    * Renders the plate 3 to plate 4 and 5 page
+    */
    private function plate3to45Home(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1191,6 +1227,9 @@ class Uzp extends DBase{
 <?php
    }
 
+   /**
+    * Saves request data from the plate 3 to plate 4 and 5 page
+    */
    private function plate3to45Save() {
       $checkQuery = 'select id from mh3_assoc where mh = :plate';
       $insertQuery = 'insert into plate45(mh3_id, plate, number, user) values(:plate3_id, :curr_plate, :number, :user)';
@@ -1215,6 +1254,9 @@ class Uzp extends DBase{
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /**
+    * Renders the AST results page
+    */
    private function astResultHome(){
       $userCombo = $this->usersCombo();
       $drugNameTable = $this->drugNameTable();
@@ -1348,6 +1390,9 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
+   /**
+    * Renders the muller hinton to eppendorf page
+    */
    private function plateToEppendorfHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1430,6 +1475,12 @@ class Uzp extends DBase{
       else die(json_encode(array('error' => false, 'mssg' => 'Eppendorf saved succesfully.', 'eppendorf' => $eppendorfLabel)));
    }
 
+   /**
+    * Generates a random eppendorf label
+    * 
+    * @param Number $noEppendorfs  The number of already generated eppendorf labels
+    * @return String The random eppendorf label
+    */
    private function getRandomEppendorfLabel($noEppendorfs) {
       //use the number to get the range e.g if number is < 1000 then we are in the first range. We have 6 ranges with 4 elements each
       //ranges are: 0-1000,1001-2000..5001-6000
@@ -1449,6 +1500,9 @@ class Uzp extends DBase{
       return strtoupper($firstCharacter.$secondCharacter.$thirdCharacter);
    }
 
+   /**
+    * Renders the DNA archiving page
+    */
    private function dnaArchivingHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1585,6 +1639,9 @@ class Uzp extends DBase{
       return $html;
    }
 
+   /**
+    * Renders the Broth to primary plate page
+    */
    private function mcConkyPlateHome(){
       $userCombo = $this->usersCombo();
 
