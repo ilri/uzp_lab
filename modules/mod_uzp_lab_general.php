@@ -346,7 +346,7 @@ class Uzp extends DBase{
     */
    private function getCascadingQuery($select, $from, $currTable, $tableAssoc, $child = null) {
       $query = "desc $currTable";
-      $result = $this->Dbase->ExecuteQuery($query);
+      $result = array_reverse($this->Dbase->ExecuteQuery($query));
       $columns = "";
       foreach($result as $currResult) {
          if($currResult['Field'] != 'id' && !$this->endsWith($currResult['Field'], "id")) {
@@ -393,6 +393,7 @@ class Uzp extends DBase{
 <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.export.js"></script>
 <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.export.js"></script>
 <div id="lab_view">
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <select id="table_to_show">
       <option value="ecoli_table1">Biochemical Results</option>
       <option value="ecoli2_table1">AST Results</option>
@@ -1569,8 +1570,8 @@ class Uzp extends DBase{
     */
    private function usersCombo(){
       if(Config::$config['site'] == "KEMRI") {
-         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi');
-         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi');
+         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi', 'Hannah Waruguru', 'Edna Kerubo');
+         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi', 'Hannah_Waruguru', 'Edna_Kerubo');
       }
       else if(Config::$config['site'] == 'UoN') {
          $userVals = array('John Kiiru', 'Johnstone Masinde', 'Lucy Gitonga', 'Beatrice Wandia', 'Caroline Kimunye');
