@@ -181,10 +181,69 @@ class Uzp extends DBase{
 	   elseif(OPTIONS_REQUESTED_MODULE == 'dump') {
          $this->dumpData();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'send_db') {
+         $this->sendDb();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'receive_db') {
+         $this->receiveDb();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'view') {
          if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getLabData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_excel') $this->donwloadExcelData();
+      }
+   }
+   
+   /**
+    * This function is responsible for sending the database backup to ILRI servers
+    */
+   private function sendDb() {
+      if(!file_exists(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads")) mkdir(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads");
+		$date = new DateTime();
+      $name = "99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
+		$filename = Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$name;
+      $command = Config::$config['mysqldump']." -u ".Config::$config['user']." -p".Config::$config['pass']." ".Config::$config['dbase'].' > '.$filename;
+		shell_exec($command);
+      $dbPath = realpath($filename);//TODO: get the real path for the file
+      echo $dbPath;
+      $ch = curl_init(Config::$config['remote_server']."?page=receive_db");
+      $cFile = new CURLFile($dbPath, 'text/plain', $name);
+      $postData = array(
+         "db_file" => $cFile
+      );
+//      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+      curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, FALSE);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+      curl_close($ch);
+   }
+   
+   /**
+    * This function is responsible for receiving the database from the labs
+    */
+   private function receiveDb() {
+      if(!empty($_FILES['file'])){
+         $this->Dbase->CreateLogEntry("trying to get file from client", "debug");
+         if($_FILES['file']['error'] > 0){
+            $this->Dbase->CreateLogEntry("File error thrown while tying to download file from client. Error is ".$_FILES['file']['error'], "fatal");
+         }
+         else{
+            $fileLoc = "uploads/".$_FILES['file']['name'];
+            $uploadStatus = move_uploaded_file($_FILES['file']['tmp_name'], $fileLoc);
+            if($uploadStatus == true) {
+               $this->Dbase->CreateLogEntry("moved file from client to ".$fileLoc, "debug");
+               $command = "mysql -u ".Config::$config['user']." -p".Config::$config['pass']." -h ".Config::$config['dbloc']." ".Config::$config['dbase']." < ".realpath($fileLoc);
+               $this->Dbase->CreateLogEntry("About to execute '$command'", "fatal");
+               //shell_exec($command);
+            }
+            else {
+               $this->Dbase->CreateLogEntry("Unable to upload".$fileLoc, "fatal");
+            }
+         }
+      }
+      else {//the received file is empty
+         $this->Dbase->CreateLogEntry("The received file ".  print_r($_FILES['file'], true)." is empty", "fatal");
       }
    }
 

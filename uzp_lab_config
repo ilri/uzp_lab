@@ -59,12 +59,14 @@ class Config extends GeneralTasks{
    static public $config = array(
       'user' => 'root',                      // username to use to connect to the dbase
       'pass' => 'root',                      // password of the defined user
-      'dbase' => 'azizi_uzp_99h_lab',             // database name
-      'session_dbase' => 'azizi_uzp_99h_lab',    // database name
+      'dbase' => 'azizi_uzp_99h_lab_1',             // database name
+      'session_dbase' => 'azizi_uzp_99h_lab_1',    // database name
       'dbloc' => 'localhost',                // database location
-      'mysqldump' => 'C:\xampp\mysql\bin\mysqldump.exe',
-      'rootdir' => '/home/jrogena/public_html/uzp_lab',
-      'site' => 'KEMRI'
+      'mysqldump' => '/usr/bin/mysqldump',
+      'mysql' => '/usr/bin/mysql',
+      'rootdir' => '/home/jrogena/public_html/uzp_lab_1',
+      'site' => 'KEMRI',
+      'remote_server' => 'http://localhost/~jrogena/uzp_lab_2/mod_ajax.php'
    );
 
    /**
