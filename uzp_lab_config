@@ -57,14 +57,14 @@ class Config extends GeneralTasks{
     * @var array  An array that holds the connection settings used to connect to the database
     */
    static public $config = array(
-      'user' => 'root',                      // username to use to connect to the dbase
-      'pass' => 'root',                      // password of the defined user
-      'dbase' => 'azizi_uzp_99h_lab_1',             // database name
-      'session_dbase' => 'azizi_uzp_99h_lab_1',    // database name
-      'dbloc' => 'localhost',                // database location
+      'user' => 'azizi_scriptsro',                      // username to use to connect to the dbase
+      'pass' => '2Nse!TY&h2DS',                      // password of the defined user
+      'dbase' => 'azizi_uzp_99h_lab',             // database name
+      'session_dbase' => 'azizi_uzp_99h_lab_kemri',    // database name
+      'dbloc' => 'boran.ilri.cgiar.org',                // database location
       'mysqldump' => '/usr/bin/mysqldump',
       'mysql' => '/usr/bin/mysql',
-      'rootdir' => '/home/jrogena/public_html/uzp_lab_1',
+      'rootdir' => '/var/www/html/azizi.ilri.org/uzp_lab_kemri',
       'site' => 'KEMRI',
       'remote_server' => 'http://localhost/~jrogena/uzp_lab_2/mod_ajax.php'
    );
