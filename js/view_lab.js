@@ -48,7 +48,7 @@ LabView.prototype.resetTableVisibility = function() {
 
 LabView.prototype.initEColiTable1 = function() {
    var source = {
-      datatype: 'json', datafields: [ 
+      datatype: 'json', datafields: [
          {name: 'received_samples_id'}, {name: 'received_samples_for_sequencing'}, {name: 'received_samples_sample'}, {name: 'received_samples_user'}, {name : 'received_samples_datetime_received'},
          {name: 'broth_assoc_broth_sample'}, {name: 'broth_assoc_datetime_added'}, {name: 'broth_assoc_field_sample_id'}, {name: 'broth_assoc_user'}, {name: 'broth_assoc_id'},
          {name: 'mcconky_assoc_id'},{name: 'mcconky_assoc_datetime_added'}, {name: 'mcconky_assoc_media_used'}, {name: 'mcconky_assoc_no_qtr_colonies'}, {name: 'mcconky_assoc_plate1_barcode'}
@@ -271,7 +271,7 @@ LabView.prototype.initEColiTable5 = function(index, parentElement, gridElement, 
 
 LabView.prototype.initEColi2Table1 = function() {
    var source = {
-      datatype: 'json', datafields: [ 
+      datatype: 'json', datafields: [
          {name: 'received_samples_id'}, {name: 'received_samples_for_sequencing'}, {name: 'received_samples_sample'}, {name: 'received_samples_user'}, {name : 'received_samples_datetime_received'},
          {name: 'broth_assoc_broth_sample'}, {name: 'broth_assoc_datetime_added'}, {name: 'broth_assoc_field_sample_id'}, {name: 'broth_assoc_user'}, {name: 'broth_assoc_id'},
          {name: 'mcconky_assoc_id'},{name: 'mcconky_assoc_datetime_added'}, {name: 'mcconky_assoc_media_used'}, {name: 'mcconky_assoc_no_qtr_colonies'}, {name: 'mcconky_assoc_plate1_barcode'}
@@ -474,7 +474,7 @@ LabView.prototype.initEColi2Table5 = function(index, parentElement, gridElement,
 
 LabView.prototype.initEColi3Table1 = function() {
    var source = {
-      datatype: 'json', datafields: [ 
+      datatype: 'json', datafields: [
          {name: 'received_samples_id'}, {name: 'received_samples_for_sequencing'}, {name: 'received_samples_sample'}, {name: 'received_samples_user'}, {name : 'received_samples_datetime_received'},
          {name: 'broth_assoc_broth_sample'}, {name: 'broth_assoc_datetime_added'}, {name: 'broth_assoc_field_sample_id'}, {name: 'broth_assoc_user'}, {name: 'broth_assoc_id'},
          {name: 'mcconky_assoc_id'},{name: 'mcconky_assoc_datetime_added'}, {name: 'mcconky_assoc_media_used'}, {name: 'mcconky_assoc_no_qtr_colonies'}, {name: 'mcconky_assoc_plate1_barcode'}
@@ -607,7 +607,7 @@ LabView.prototype.initEColi3Table3 = function(index, parentElement, gridElement,
 
 LabView.prototype.initCampyTable1 = function() {
    var source = {
-      datatype: 'json', datafields: [ 
+      datatype: 'json', datafields: [
          {name: 'campy_received_bootsocks_id'}, {name: 'campy_received_bootsocks_datetime_received'}, {name: 'campy_received_bootsocks_for_sequencing'}, {name: 'campy_received_bootsocks_sample'}, {name: 'campy_received_bootsocks_user'},
          {name: 'campy_bootsock_assoc_id'}, {name: 'campy_bootsock_assoc_daughter_sample'}, {name: 'campy_bootsock_assoc_datetime_added'}, {name: 'campy_bootsock_assoc_user'},
          {name: 'campy_cryovials_cryovial'}, {name: 'campy_cryovials_datetime_saved'}, {name: 'campy_cryovials_id'}, {name: 'campy_cryovials_position_in_box'}, {name: 'campy_cryovials_user'}, {name: 'campy_cryovials_box'}
@@ -658,7 +658,7 @@ LabView.prototype.initCampyTable1 = function() {
 
 LabView.prototype.initCampy2Table1 = function() {
    var source = {
-      datatype: 'json', datafields: [ 
+      datatype: 'json', datafields: [
          {name: 'campy_received_bootsocks_id'}, {name: 'campy_received_bootsocks_datetime_received'}, {name: 'campy_received_bootsocks_for_sequencing'}, {name: 'campy_received_bootsocks_sample'}, {name: 'campy_received_bootsocks_user'},
          {name: 'campy_bootsock_assoc_id'}, {name: 'campy_bootsock_assoc_daughter_sample'}, {name: 'campy_bootsock_assoc_datetime_added'}, {name: 'campy_bootsock_assoc_user'},
          {name: 'campy_mccda_assoc_datetime_added'},{name: 'campy_mccda_assoc_plate1_barcode'}, {name: 'campy_mccda_assoc_user'}, {name: 'campy_mccda_assoc_id'}
@@ -742,4 +742,374 @@ LabView.prototype.initCampy2Table2 = function(index, parentElement, gridElement,
           ]
       });
    }
+};
+
+/**
+ * Create an object for database checks
+ * @returns {undefined}
+ */
+function DBChecks(){
+   window.dbChecks = this;
+   this.prevNotificationClass = 'info';
+   dbChecks.initChecksView();
+}
+
+/**
+ * Initialize the db checks view
+ * @returns {undefined}
+ */
+DBChecks.prototype.initChecksView = function(){
+   // initiateRangeCalender
+   $('#dates').on('blur', function(){
+      $("#cal").jqxCalendar('destroy');
+   });
+   // initialize the grid
+    var source = { datatype: "json", datafields: [{ name: 'result', type: 'string' }], id: 'id' };
+    var dataAdapter = new $.jqx.dataAdapter(source);
+   $("#grid").jqxGrid({
+      width: 918,
+      source: dataAdapter,
+      columnsresize: true,
+      pagesize: 20,
+      pageable: true,
+      filterable: true,
+      renderstatusbar: dbChecks.gridStatusBar,
+      pagesizeoptions: ['20', '50', '100'],
+      columns: [{text: 'Results', dataField: 'results', width: 100 }]
+   });
+
+   $('#dates').on('focus', function(){
+      $("#range").html('<div id="cal"></div>');
+      $("#cal").jqxCalendar({ width: 220, height: 220,  selectionMode: 'range' });
+      $("#table_to_show").on('change', dbChecks.initiateChecksGrid);
+      $("#cal").on('change', function (event) {
+         var selection = event.args.range;
+         var from = selection.from.toLocaleDateString(), to = selection.to.toLocaleDateString();
+         $('#dates').val(from +' - '+ to);
+         dbChecks.initiateChecksGrid(selection.from.toISOString().substr(0, 10), selection.to.toISOString().substr(0, 10));
+      });
+      $('#cal').css({left: '630px', top: '2px'});
+   });
+};
+
+/**
+ * Initiate the rendering of the status bar in the animal grid
+ * @returns {undefined}
+ */
+DBChecks.prototype.gridStatusBar = function(statusbar){
+   var container = $("<div style='overflow: hidden; position: relative; margin: 5px;'></div>");
+   var excelButton = $("<div class='status_bar_div'><img style='position: relative; margin-top: 2px;' src='images/excel.png'/><span class='status_bar_span'>Export</span></div>");
+
+   container.append(excelButton);
+   excelButton.jqxButton({  width: 80, height: 20 });
+   statusbar.append(container);
+
+   excelButton.click(function (event) {
+       $("#inventory").jqxGrid('exportdata', 'xls', 'jqxGrid', false);
+   });
+};
+
+/**
+ * Initiate the grid that will display the checks results
+ *
+ * @param   string   from  The start date of this check
+ * @param   string   to    The end date of this check
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateChecksGrid = function(from, to){
+   // get the selected function
+   var selected = $('#table_to_show').val();
+//   alert(selected);
+   switch(selected){
+      case 'received_samples':
+         dbChecks.initiateReceivedSamplesCheck(from, to);
+      break;
+      case 'ecoli2_table1':
+         dbChecks.initiateFieldBrothSamplesCheck(from, to);
+      break;
+      case 'broth_mcconky':
+         dbChecks.initiateBrothMcconkyCheck(from, to);
+      break;
+      case 'mcconky_colonies':
+         dbChecks.initiateMcconkyColoniesCheck(from, to);
+      break;
+      case 'colonies_mh':
+         dbChecks.initiateColoniesMHCheck(from, to);
+      break;
+      case 'mh_vials':
+         dbChecks.initiateMHVialsCheck(from, to);
+      break;
+   }
+};
+
+/**
+ * Initiate the checks for the received samples
+ *
+ * @param {type} from
+ * @param {type} to
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateReceivedSamplesCheck = function(from, to){
+   var columns = [
+      {text: 'Lab', dataField: 'lab', width: 80, filtertype: 'list' },
+      {text: 'Date Received', dataField: 'date_received', width: 100 },
+      {text: 'Received Samples', dataField: 'count', width: 130 },
+      {text: 'For Sequencing', dataField: 'for_seq', width: 100 },
+      {text: 'Broth Samples', dataField: 'broth_samples', width: 100 },
+      {text: 'Mcconky Plates', dataField: 'mcconky', width: 100 },
+      {text: 'Colonies', dataField: 'colonies', width: 80 },
+      {text: 'MH Plates', dataField: 'mh', width: 70 },
+      {text: 'Vials', dataField: 'vials', width: 60 }
+   ];
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=received_samples", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'lab', type: 'string' }, { name: 'date_received', type: 'string' }, { name: 'count', type: 'int' }, { name: 'for_seq', type: 'int' },
+                   { name: 'broth_samples'}, { name: 'mcconky'}, { name: 'colonies'}, { name: 'mh'}, { name: 'vials'}
+                ],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Initiate the check from field samples to broth samples
+ * @param {type} from
+ * @param {type} to
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateFieldBrothSamplesCheck = function(from, to){
+   var columns = [
+      {text: 'Issue', dataField: 'issue', width: 150, filtertype: 'list' },
+      {text: 'Lab', dataField: 'lab', width: 80, filtertype: 'list' },
+      {text: 'Sample', dataField: 'sample', width: 100 },
+      {text: 'Date Received', dataField: 'datetime_received', width: 100 },
+      {text: 'Receiving User', dataField: 'rec_user', width: 120 },
+      {text: 'For Sequencing', dataField: 'for_seq', width: 100 },
+      {text: 'Field Sample', dataField: 'field_sample_id', width: 80 },
+      {text: 'Broth Sample', dataField: 'broth_sample', width: 100 },
+      {text: 'Broth Datetime Added', dataField: 'datetime_added', width: 100 },
+      {text: 'Broth User', dataField: 'br_user', width: 100 }
+   ];
+
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=ecoli2_table1", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'issue'}, { name: 'lab'}, { name: 'sample'}, { name: 'datetime_received'}, { name: 'rec_user'}, { name: 'for_seq'},
+                   { name: 'field_sample_id'}, { name: 'broth_sample'}, { name: 'datetime_added'}, { name: 'br_user'}
+                ],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Initiate the checks from broth samples to mcconky plate
+ * @param {type} from
+ * @param {type} to
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateBrothMcconkyCheck = function(from, to){
+   var columns = [
+      {text: 'Issue', dataField: 'issue', width: 150, filtertype: 'list' },
+      {text: 'Lab', dataField: 'lab', width: 80, filtertype: 'list' },
+      {text: 'broth Sample', dataField: 'broth_sample', width: 100 },
+      {text: 'Broth Date', dataField: 'broth_datetime', width: 100 },
+      {text: 'Broth User', dataField: 'broth_user', width: 120 },
+      {text: 'Plate1', dataField: 'plate1_barcode', width: 100 },
+      {text: 'Plate1 Date', dataField: 'plate1_datetime', width: 80 },
+      {text: 'Media Used', dataField: 'media_used', width: 100 },
+      {text: 'Plate1 User', dataField: 'plate1_user', width: 100 },
+      {text: 'QTR Colonies', dataField: 'no_qtr_colonies', width: 100 }
+   ];
+
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=broth_mcconky", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'issue'}, { name: 'lab'}, { name: 'broth_sample'}, { name: 'broth_datetime'}, { name: 'broth_user'},
+                   { name: 'plate1_barcode'}, { name: 'plate1_datetime'}, { name: 'media_used'}, { name: 'plate1_user'}, { name: 'no_qtr_colonies'}],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Initiate mcconky plates to colonies checks
+ * @param {type} from
+ * @param {type} to
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateMcconkyColoniesCheck = function(from, to){
+   var columns = [
+      {text: 'Issue', dataField: 'issue', width: 120, filtertype: 'list' },
+      {text: 'Lab', dataField: 'lab', width: 60, filtertype: 'list' },
+      {text: 'Plate1', dataField: 'plate1_barcode', width: 80 },
+      {text: 'Plate1 Date', dataField: 'plate1_datetime', width: 100 },
+      {text: 'Plate1 User', dataField: 'plate1_user', width: 150 },
+      {text: 'QTR Colony', dataField: 'no_qtr_colonies', width: 60 },
+      {text: 'Colonies Count', dataField: 'colonies_count', width: 80 },
+      {text: 'Colony', dataField: 'colony', width: 100 },
+      {text: 'Colony Datetime', dataField: 'colony_datetime', width: 100 },
+      {text: 'Colony User', dataField: 'colony_user', width: 100 }
+   ];
+
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=mcconky_colonies", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'issue'}, { name: 'lab'}, { name: 'plate1_barcode'}, { name: 'plate1_datetime'}, { name: 'plate1_user'}, { name: 'no_qtr_colonies'},
+                   { name: 'colonies_count'}, { name: 'colony'}, { name: 'colony_datetime'}, { name: 'colony_user'}
+                ],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Initiates the colonies to mh checks
+ * @param {type} from
+ * @param {type} to
+ * @returns {undefined}
+ */
+DBChecks.prototype.initiateColoniesMHCheck = function(from, to){
+   var columns = [
+      {text: 'Issue', dataField: 'issue', width: 120, filtertype: 'list' },
+      {text: 'Lab', dataField: 'lab', width: 60, filtertype: 'list' },
+      {text: 'Colony', dataField: 'colony', width: 100 },
+      {text: 'Colony Datetime', dataField: 'colony_datetime', width: 100 },
+      {text: 'MH Plate', dataField: 'mh', width: 100 },
+      {text: 'MH Datetime', dataField: 'mh_datetime', width: 130 },
+      {text: 'MH User', dataField: 'mh_user', width: 200 }
+   ];
+
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=colonies_mh", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'issue'}, { name: 'lab'}, { name: 'colony'}, { name: 'colony_datetime'},
+                   { name: 'mh'}, { name: 'mh_datetime'}, { name: 'mh_user'}
+                ],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+DBChecks.prototype.initiateMHVialsCheck = function(from, to){
+   var columns = [
+      {text: 'Issue', dataField: 'issue', width: 120, filtertype: 'list' },
+      {text: 'Lab', dataField: 'lab', width: 60, filtertype: 'list' },
+      {text: 'MH Plate', dataField: 'mh', width: 100 },
+      {text: 'MH Datetime', dataField: 'mh_datetime', width: 130 },
+      {text: 'Vial', dataField: 'mh_vial', width: 100 },
+      {text: 'Vial Date', dataField: 'vial_date', width: 100 },
+      {text: 'Tray', dataField: 'box', width: 100 },
+      {text: 'Pos', dataField: 'pos', width: 100 }
+   ];
+
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page=db_checks&do=mh_vials", async: false, dataType:'json', data: {from: from, to: to},
+      success: function (data) {
+         if(data.error === true){
+            dbChecks.showNotification(data.mssg, 'error');
+            return;
+         }
+         else{
+            var source = {
+                datatype: "json",
+                datafields: [
+                   { name: 'issue'}, { name: 'lab'}, { name: 'mh'}, { name: 'mh_datetime'}, { name: 'mh_user'},
+                   { name: 'mh_vial'}, { name: 'vial_date'}, { name: 'box'}, { name: 'pos'}
+                ],
+                localdata: data.data
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $('#grid').jqxGrid({columns: columns, source: dataAdapter});
+            dbChecks.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Show a notification on the page
+ *
+ * @param   message     The message to be shown
+ * @param   type        The type of message
+ */
+DBChecks.prototype.showNotification = function(message, type){
+   if(type === undefined) { type = 'error'; }
+
+   $('#notification_box #msg').html(message);
+
+   $('#notification_box').removeClass('jqx-notification-'+dbChecks.prevNotificationClass);
+   $('#notification_box').addClass('jqx-notification-'+type);
+
+   $('table td:first').removeClass('jqx-notification-icon-'+dbChecks.prevNotificationClass);
+   $('table td:first').addClass('jqx-notification-icon-'+type);
+
+   $('#notification_box').jqxNotification('open');
+   dbChecks.prevNotificationClass = type;
 };

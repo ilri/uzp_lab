@@ -41,6 +41,7 @@ class Uzp extends DBase{
 
    public function  __construct() {
       $this->Dbase = new DBase('mysql');
+
       $this->Dbase->InitializeConnection();
       if(is_null($this->Dbase->dbcon)) {
          ob_start();
@@ -53,7 +54,7 @@ class Uzp extends DBase{
    }
 
    public function sessionStart() {
-      $this->Dbase->SessionStart();
+//      $this->Dbase->SessionStart();
    }
 
    /**
@@ -187,13 +188,22 @@ class Uzp extends DBase{
       elseif(OPTIONS_REQUESTED_MODULE == 'receive_db') {
          $this->receiveDb();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'db_checks') {
+         if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home') $this->dbChecks();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'received_samples') $this->dbCheckReceivedSamples();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'ecoli2_table1') $this->dbCheckFieldBrothSamples();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'broth_mcconky') $this->dbCheckBrothMcconkySamples();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'mcconky_colonies') $this->dbCheckMcconkyColonies();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'colonies_mh') $this->dbCheckColoniesMH();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'mh_vials') $this->dbCheckMHVials();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'view') {
          if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getLabData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_excel') $this->donwloadExcelData();
       }
    }
-   
+
    /**
     * This function is responsible for sending the database backup to ILRI servers
     */
@@ -218,7 +228,7 @@ class Uzp extends DBase{
       curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
       curl_close($ch);
    }
-   
+
    /**
     * This function is responsible for receiving the database from the labs
     */
@@ -270,7 +280,7 @@ class Uzp extends DBase{
 		readfile($zipName);
 		return;
    }
-   
+
    /**
     * This function exports the data as an excel file
     */
@@ -335,7 +345,8 @@ class Uzp extends DBase{
             $excelObject->setActiveSheetIndex($sheetIndex);
             $sheetIndex++;
             $excelObject->getActiveSheet()->setTitle($currRootChild);
-            $lastColumn = explode("-", $tableColumns[0])[0];
+            $lastColumn = explode("-", $tableColumns[0]);
+            $lastColumn = $lastColumn[0];
             $mainColumnCount = 0;
             for($columnIndex = 0; $columnIndex < count($tableColumns); $columnIndex++) {
                $explodedHeading = explode("-", $tableColumns[$columnIndex]);
@@ -377,7 +388,7 @@ class Uzp extends DBase{
       $objWriter = new PHPExcel_Writer_Excel2007($excelObject);
       if(!file_exists(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads")) mkdir(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads");
       $objWriter->save(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx');
-      
+
       header('Content-Description: File Transfer');
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header("Content-Disposition: attachment; filename=".basename($filename.'.xlsx'));
@@ -390,17 +401,17 @@ class Uzp extends DBase{
 		readfile(Config::$config['rootdir'].DIRECTORY_SEPARATOR."downloads".DIRECTORY_SEPARATOR.$filename.'.xlsx');
 		return;
    }
-   
+
    /**
     * This recursive function constructs the select and from string of a query given the last cascading
     * child and an array showing the cascading parents of all the tables
-    * 
+    *
     * @param type $select     A string containing the already constructed select part of the query
     * @param type $from       A string containing the already constructed from part of the query
     * @param type $currTable  The table which we are going to append details from
     * @param type $tableAssoc An associative array showing parent child associations between the tables with the child table name as the key
     * @param type $child      The name of the child table for $currTable. Is optional
-    * 
+    *
     * @return type   An associative array containing 'select' and 'from' as its keys
     */
    private function getCascadingQuery($select, $from, $currTable, $tableAssoc, $child = null) {
@@ -427,7 +438,8 @@ class Uzp extends DBase{
    private function endsWith($haystack, $needle) {
       return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
    }
-   
+
+
    /**
     * This function renders the view data page
     */
@@ -473,13 +485,12 @@ class Uzp extends DBase{
 </div>
 <script type="text/javascript">
    $(document).ready(function(){
-      console.log("bam");
       var lv = new LabView();
    });
 </script>
    <?php
    }
-   
+
    /**
     * This function returns lab data requested for by a GET request
     */
@@ -637,6 +648,7 @@ class Uzp extends DBase{
          <div><br /><b>Miscellaneous</b></div>
          <li><a href="?page=dump">Backup database</a></li>
          <li><a href="?page=view">View database data</a></li>
+         <li><a href="?page=db_checks">Run DB Checks</a></li>
          <!--li><a href="?page=step13">Eppendorf / DNA Extract -> Archive (13)</a></li-->
       </ul>
    </div>
@@ -835,7 +847,7 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    private function plate2ToMHHome() {
       $userCombo = $this->usersCombo();
 ?>
@@ -880,7 +892,7 @@ class Uzp extends DBase{
 </script>
 <?php
    }
-   
+
    /**
     * Renders the Plate2 to Muller Hinton page
     */
@@ -1111,7 +1123,7 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    private function plate3ToMHHome() {
       $userCombo = $this->usersCombo();
 ?>
@@ -1156,7 +1168,7 @@ class Uzp extends DBase{
 </script>
 <?php
    }
-   
+
    /**
     * Renders the plate 3 to muller hinton to page
     */
@@ -1173,7 +1185,7 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    private function plate6ToMHHome() {
       $userCombo = $this->usersCombo();
 ?>
@@ -1218,7 +1230,7 @@ class Uzp extends DBase{
 </script>
 <?php
    }
-   
+
    /**
     * Renders the plate 6 to muller hinton page
     */
@@ -1537,7 +1549,7 @@ class Uzp extends DBase{
 
    /**
     * Generates a random eppendorf label
-    * 
+    *
     * @param Number $noEppendorfs  The number of already generated eppendorf labels
     * @return String The random eppendorf label
     */
@@ -1641,7 +1653,7 @@ class Uzp extends DBase{
 
       return $userCombo;
    }
-   
+
    private function sequencingCombo(){
       $userVals = array('Yes', 'No');
       $userIds = array('yes', 'no');
@@ -1853,7 +1865,7 @@ class Uzp extends DBase{
       $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    private function mhHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1898,7 +1910,7 @@ class Uzp extends DBase{
 </script>
 <?php
    }
-   
+
    private function mhSave() {
       $checkQuery = 'select id from colonies where colony = :colony';
       $insertQuery = 'insert into mh_assoc(colony_id, mh, user) values(:colony_id, :mh, :user)';
@@ -1912,7 +1924,7 @@ class Uzp extends DBase{
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
-   
+
    private function mhVialHome(){
       $userCombo = $this->usersCombo();
 ?>
@@ -1957,7 +1969,7 @@ class Uzp extends DBase{
 </script>
 <?php
    }
-   
+
    private function mhVialSave() {
       $checkQuery = 'select id from mh_assoc where mh = :colony';
       $insertQuery = 'insert into mh_vial(mh_id, mh_vial, user) values(:colony_id, :mh, :user)';
@@ -2496,6 +2508,220 @@ class Uzp extends DBase{
          else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       }
       else die(json_encode(array('error' => false, 'mssg' => 'The colony storage has been saved succesfully.')));
+   }
+
+   /**
+    * This function renders the view data page
+    */
+   private function dbChecks() {
+?>
+<script type="text/javascript" src="js/view_lab.js"></script>
+<link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxscrollbar.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxmenu.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxcheckbox.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxlistbox.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdropdownlist.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.sort.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.pager.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.selection.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.filter.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.export.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxgrid.columnsresize.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.export.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>jqwidgets/jqwidgets/jqxcalendar.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>jqwidgets/jqwidgets/jqxtooltip.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>jqwidgets/jqwidgets/jqxdatetimeinput.js"></script>
+<div id="lab_view">
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div id="top">
+      <div>
+         <select id="table_to_show" onChange="dbChecks.initiateChecksGrid()">
+            <option value="select_one" selected="true">Select One</option>
+            <option value="received_samples">Received Samples</option>
+            <option value="ecoli2_table1">Received -> Broth</option>
+            <option value="broth_mcconky">Broth -> McConky</option>
+            <option value="mcconky_colonies">McConky -> Colonies</option>
+            <option value="colonies_mh">Colonies -> MH</option>
+            <option value="mh_vials">MH -> Vials</option>
+         </select>
+      </div>
+      <div id='range'></div>
+   </div>
+   <div id="grid"></div>
+</div>
+<div id="notification_box"></div>
+<script type="text/javascript">
+   $(document).ready(function(){
+      var dbChecks = new DBChecks();
+      var uzp = new Uzp();
+   });
+</script>
+   <?php
+   }
+
+   /**
+    * Get a summary of the received samples
+    */
+   private function dbCheckReceivedSamples(){
+      // get the summary of the received samples
+      $receivedSamplesQ = 'select "KEMRI" as lab, date(datetime_received) as date_received, count(*) as count from '.Config::$kemri_db_name.'.received_samples group by date(datetime_received) '
+            . 'union '
+            . 'select "UoN" as lab, date(datetime_received) as date_received, count(*) as count from '.Config::$uon_db_name.'.received_samples group by date(datetime_received) '
+            . 'order by date_received desc';
+      $receivedSamples = $this->Dbase->ExecuteQuery($receivedSamplesQ);
+      if($receivedSamples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      $samplesCount = count($receivedSamples);
+      for($i = 0; $i < $samplesCount; $i++){
+         if($receivedSamples[$i]['lab'] == 'UoN') $lab = Config::$uon_db_name;
+         else if($receivedSamples[$i]['lab'] == 'KEMRI') $lab = Config::$kemri_db_name;
+
+         $seqSamplesQ = "select count(*) as count from $lab.received_samples where for_sequencing='yes' and datetime_received like :date_r";
+         $brothSamplesQ = "select count(*) as count from $lab.broth_assoc where datetime_added like :date_r";
+         $mcconkyAssocQ = "select count(*) as count from $lab.mcconky_assoc where datetime_added like :date_r";
+         $coloniesAssocQ = "select count(*) as count from $lab.colonies where datetime_saved like :date_r";
+         $mhAssocQ = "select count(*) as count from $lab.mh_assoc where datetime_added like :date_r";
+         $mhVialQ = "select count(*) as count from $lab.mh_vial where datetime_saved like :date_r";
+
+         $seqSamples = $this->Dbase->ExecuteQuery($seqSamplesQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+         $brothSamples = $this->Dbase->ExecuteQuery($brothSamplesQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+         $mcconkyAssoc = $this->Dbase->ExecuteQuery($mcconkyAssocQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+         $coloniesAssoc = $this->Dbase->ExecuteQuery($coloniesAssocQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+         $mhAssoc = $this->Dbase->ExecuteQuery($mhAssocQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+         $mhVial = $this->Dbase->ExecuteQuery($mhVialQ, array('date_r' => "{$receivedSamples[$i]['date_received']}%"));
+
+         if($seqSamples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         if($brothSamples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         if($mcconkyAssoc == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         if($coloniesAssoc == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         if($mhAssoc == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         if($mhVial == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+
+         $receivedSamples[$i]['for_seq'] = $seqSamples[0]['count'];
+         $receivedSamples[$i]['broth_samples'] = $brothSamples[0]['count'];
+         $receivedSamples[$i]['mcconky'] = $mcconkyAssoc[0]['count'];
+         $receivedSamples[$i]['colonies'] = $coloniesAssoc[0]['count'];
+         $receivedSamples[$i]['mh'] = $mhAssoc[0]['count'];
+         $receivedSamples[$i]['vials'] = $mhVial[0]['count'];
+      }
+
+      die(json_encode(array('error' => false, 'data' => $receivedSamples)));
+   }
+
+   /**
+    * Run summaries for field and broth samples
+    */
+   private function dbCheckFieldBrothSamples(){
+      $samplesQ = 'select "Samples w/o Broth" issue, "KEMRI" lab, a.sample, a.datetime_received, a.user rec_user, a.for_sequencing for_seq, b.field_sample_id, b.broth_sample, b.datetime_added, b.user br_user '
+            . 'from '.Config::$kemri_db_name.'.received_samples a left join '.Config::$kemri_db_name.'.broth_assoc b on a.id=b.field_sample_id where b.id is null '
+            . 'union '
+            . 'select "Samples w/o Broth" issue, "UoN" lab, a.sample, a.datetime_received, a.user rec_user, a.for_sequencing for_seq, b.field_sample_id, b.broth_sample, b.datetime_added, b.user br_user '
+            . 'from '.Config::$uon_db_name.'.received_samples a left join '.Config::$uon_db_name.'.broth_assoc b on a.id=b.field_sample_id where b.id is null '
+            . 'union '
+            . 'select "Multiple Broth Samples" issue, "KEMRI" lab, a.sample, a.datetime_received, a.user rec_user, a.for_sequencing for_seq, b.field_sample_id, b.broth_sample, b.datetime_added, b.user br_user '
+            . 'from '.Config::$kemri_db_name.'.broth_assoc as b inner join '.Config::$kemri_db_name.'.received_samples as a on b.field_sample_id=a.id where field_sample_id in (select field_sample_id from '.Config::$uon_db_name.'.broth_assoc group by field_sample_id having count(*) > 1)'
+            . 'union '
+            . 'select "Multiple Broth Samples" issue, "UoN" lab, a.sample, a.datetime_received, a.user rec_user, a.for_sequencing for_seq, b.field_sample_id, b.broth_sample, b.datetime_added, b.user br_user '
+            . 'from '.Config::$uon_db_name.'.broth_assoc as b inner join '.Config::$uon_db_name.'.received_samples as a on b.field_sample_id=a.id where field_sample_id in (select field_sample_id from '.Config::$uon_db_name.'.broth_assoc group by field_sample_id having count(*) > 1)';
+      $samples = $this->Dbase->ExecuteQuery($samplesQ);
+      if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+
+      die(json_encode(array('error' => false, 'data' => $samples)));
+   }
+
+   /**
+    * Run summaries for broth and mcconky samples
+    */
+   private function dbCheckBrothMcconkySamples(){
+      $samplesQ = 'select "Broth w/o McConky" issue, "KEMRI" lab, a.plate1_barcode, a.datetime_added plate1_datetime, a.media_used, a.user plate1_user, a.no_qtr_colonies, b.broth_sample, b.datetime_added broth_datetime, b.user broth_user '
+            . 'FROM '.Config::$kemri_db_name.'.mcconky_assoc as a left join '.Config::$kemri_db_name.'.broth_assoc as b on a.broth_sample_id=b.id where b.id is null '
+            . 'union '
+            . 'select "Multiple McConky" issue, "KEMRI" lab, a.plate1_barcode, a.datetime_added plate1_datetime, a.media_used, a.user plate1_user, a.no_qtr_colonies, b.broth_sample, b.datetime_added broth_datetime, b.user broth_user '
+            . 'from '.Config::$kemri_db_name.'.mcconky_assoc as a inner join '.Config::$kemri_db_name.'.broth_assoc as b on a.broth_sample_id=b.id where field_sample_id in (SELECT broth_sample_id FROM `mcconky_assoc` group by broth_sample_id having count(*) > 1) '
+            . 'union '
+            . 'select "Broth w/o McConky" issue, "UoN" lab, a.plate1_barcode, a.datetime_added plate1_datetime, a.media_used, a.user plate1_user, a.no_qtr_colonies, b.broth_sample, b.datetime_added broth_datetime, b.user broth_user '
+            . 'FROM '.Config::$uon_db_name.'.mcconky_assoc as a left join '.Config::$uon_db_name.'.broth_assoc as b on a.broth_sample_id=b.id where b.id is null '
+            . 'union '
+            . 'select "Multiple McConky" issue, "UoN" lab, a.plate1_barcode, a.datetime_added plate1_datetime, a.media_used, a.user plate1_user, a.no_qtr_colonies, b.broth_sample, b.datetime_added broth_datetime, b.user broth_user '
+            . 'from '.Config::$uon_db_name.'.mcconky_assoc as a inner join '.Config::$uon_db_name.'.broth_assoc as b on a.broth_sample_id=b.id where field_sample_id in (SELECT broth_sample_id FROM `mcconky_assoc` group by broth_sample_id having count(*) > 1)'
+            . ' order by plate1_datetime desc';
+      $samples = $this->Dbase->ExecuteQuery($samplesQ);
+      if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+
+      die(json_encode(array('error' => false, 'data' => $samples)));
+   }
+
+   /**
+    * Run checks for mcconky plate to colonies
+    */
+   private function dbCheckMcconkyColonies(){
+      $samplesQ = 'SELECT "Colonies Count" issue, "UoN" lab, b.plate1_barcode, date(b.datetime_added) plate1_datetime, b.user plate1_user, b.no_qtr_colonies, count(*) as colonies_count, date(a.datetime_saved) as colony_datetime, a.user colony_user, "N/A" as colony '
+            . 'FROM '.Config::$uon_db_name.'.colonies as a inner join '.Config::$uon_db_name.'.mcconky_assoc as b on a.mcconky_plate_id=b.id group by a.mcconky_plate_id '
+            . 'union '
+            . 'SELECT "Colonies Count" issue, "KEMRI" lab, b.plate1_barcode, date(b.datetime_added) plate1_datetime, b.user plate1_user, b.no_qtr_colonies, count(*) as colonies_count, date(a.datetime_saved) as colony_datetime, a.user colony_user, "N/A" as colony '
+            . 'FROM '.Config::$kemri_db_name.'.colonies as a inner join '.Config::$uon_db_name.'.mcconky_assoc as b on a.mcconky_plate_id=b.id group by a.mcconky_plate_id '
+            . 'union '
+            . 'SELECT "Missing Colonies" issue, "UoN" lab, b.plate1_barcode, date(b.datetime_added) plate1_datetime, b.user plate1_user, b.no_qtr_colonies, "N/A" as colonies_count, "N/A" colony_datetime, "N/A" colony_user, "N/A" as colony '
+            . 'FROM '.Config::$uon_db_name.'.mcconky_assoc as b left join '.Config::$uon_db_name.'.colonies as a on b.id=a.mcconky_plate_id where a.id is null '
+            . 'union '
+            . 'SELECT "Missing Colonies" issue, "KEMRI" lab, b.plate1_barcode, date(b.datetime_added) plate1_datetime, b.user plate1_user, b.no_qtr_colonies, "N/A" as colonies_count, "N/A" colony_datetime, "N/A" colony_user, "N/A" as colony '
+            . 'FROM '.Config::$kemri_db_name.'.mcconky_assoc as b left join '.Config::$uon_db_name.'.colonies as a on b.id=a.mcconky_plate_id where a.id is null '
+            . 'order by plate1_datetime desc';
+
+      $samples = $this->Dbase->ExecuteQuery($samplesQ);
+      if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      die(json_encode(array('error' => false, 'data' => $samples)));
+   }
+
+   /**
+    * Run checks for colonies to MH plates
+    */
+   private function dbCheckColoniesMH(){
+      $samplesQ = 'select "Multiple MHs" issue, "UoN" lab, b.colony, date(b.datetime_saved) colony_datetime, a.mh, a.datetime_added mh_datetime, a.user mh_user '
+            . 'from '.Config::$uon_db_name.'.mh_assoc as a inner join '.Config::$uon_db_name.'.colonies as b on a.colony_id=b.id '
+            . 'where colony_id in (SELECT colony_id FROM '.Config::$uon_db_name.'.mh_assoc group by colony_id having count(*) > 1) '
+            . 'union '
+            . 'select "Multiple MHs" issue, "KEMRI" lab, b.colony, date(b.datetime_saved) colony_datetime, a.mh, a.datetime_added mh_datetime, a.user mh_user '
+            . 'from '.Config::$kemri_db_name.'.mh_assoc as a inner join '.Config::$kemri_db_name.'.colonies as b on a.colony_id=b.id '
+            . 'where colony_id in (SELECT colony_id FROM '.Config::$kemri_db_name.'.mh_assoc group by colony_id having count(*) > 1) '
+            . 'order by colony, mh_datetime';
+
+      $samples = $this->Dbase->ExecuteQuery($samplesQ);
+      if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      die(json_encode(array('error' => false, 'data' => $samples)));
+   }
+
+   /**
+    * Checks for MH -> vials
+    */
+   private function dbCheckMHVials(){
+      $samplesQ = 'SELECT "MH w/o Vials" issue, "UoN" lab, b.mh, date(b.datetime_added) mh_datetime, "NULL" as mh_vial, "NULL" as vial_date, "NULL" as box, "NULL" as pos '
+            . 'from '.Config::$uon_db_name.'.mh_vial as a right join '.Config::$uon_db_name.'.mh_assoc as b on b.id=a.mh_id where a.id is null '
+            . 'union '
+            . 'SELECT "Vials w/o Pos" issue, "UoN" lab, b.mh, date(b.datetime_added) mh_datetime, "NULL" as mh_vial, date(datetime_saved) as vial_date, "NULL" as box, "NULL" as pos '
+            . 'from '.Config::$uon_db_name.'.mh_vial as a inner join '.Config::$uon_db_name.'.mh_assoc as b on b.id=a.mh_id where a.box is null '
+            . 'union '
+            . 'select "Multiple Vials/MH" issue, "UoN" lab, b.mh, date(b.datetime_added) mh_datetime, mh_vial, date(datetime_saved) vial_date, box, position_in_box as pos '
+            . 'from '.Config::$uon_db_name.'.mh_vial as a inner join '.Config::$uon_db_name.'.mh_assoc as b on a.mh_id=b.id where a.mh_id in (select mh_id from '.Config::$uon_db_name.'.mh_vial group by mh_id having count(*) > 1) '
+            . 'union '
+            . 'SELECT "MH w/o Vials" issue, "KEMRI" lab, b.mh, date(b.datetime_added) mh_datetime, "NULL" as mh_vial, "NULL" as vial_date, "NULL" as box, "NULL" as pos '
+            . 'from '.Config::$kemri_db_name.'.mh_vial as a right join '.Config::$kemri_db_name.'.mh_assoc as b on b.id=a.mh_id where a.id is null '
+            . 'union '
+            . 'SELECT "Vials w/o Pos" issue, "KEMRI" lab, b.mh, date(b.datetime_added) mh_datetime, "NULL" as mh_vial, date(datetime_saved) as vial_date, "NULL" as box, "NULL" as pos '
+            . 'from '.Config::$kemri_db_name.'.mh_vial as a inner join '.Config::$kemri_db_name.'.mh_assoc as b on b.id=a.mh_id where a.box is null '
+            . 'union '
+            . 'select "Multiple Vials/MH" issue, "KEMRI" lab, b.mh, date(b.datetime_added) mh_datetime, mh_vial, date(datetime_saved) vial_date, box, position_in_box as pos '
+            . 'from '.Config::$kemri_db_name.'.mh_vial as a inner join '.Config::$kemri_db_name.'.mh_assoc as b on a.mh_id=b.id where a.mh_id in (select mh_id from '.Config::$kemri_db_name.'.mh_vial group by mh_id having count(*) > 1) '
+            . 'order by mh_datetime, mh';
+
+      $samples = $this->Dbase->ExecuteQuery($samplesQ);
+      if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      die(json_encode(array('error' => false, 'data' => $samples)));
    }
 }
 ?>
