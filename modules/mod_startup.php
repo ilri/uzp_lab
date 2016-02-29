@@ -7,7 +7,7 @@
  * @since v0.2
  */
 
-define('OPTIONS_COMMON_FOLDER_PATH', 'common/');
+define('OPTIONS_COMMON_FOLDER_PATH', '../bower/');
 
 require_once OPTIONS_COMMON_FOLDER_PATH . 'azizi-shared-libs/mod_general/mod_general_v0.7.php';
 require_once 'uzp_lab_config';
