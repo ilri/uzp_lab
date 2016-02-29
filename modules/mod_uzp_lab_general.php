@@ -168,7 +168,6 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColoniesHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMicroaerobicColoniesSave();
       }
-
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -201,6 +200,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '' || OPTIONS_REQUESTED_SUB_MODULE == 'home')$this->viewData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_data') $this->getLabData();
          else if(OPTIONS_REQUESTED_SUB_MODULE == 'get_excel') $this->donwloadExcelData();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'update_lab_data'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->updateLabDBHome();
+         else if(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->saveUploadedBackups();
       }
    }
 
@@ -258,12 +261,12 @@ class Uzp extends DBase{
    }
 
    private function dumpData() {
-      if(!file_exists(Config::$config['rootdir']."\downloads")) mkdir(Config::$config['rootdir']."\downloads");
 		$date = new DateTime();
-		$filename = Config::$config['rootdir']."\downloads\99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
+		$filename = "99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
 		$zipName = $filename.".zip";
-		$command = Config::$config['mysqldump']." -u ".Config::$config['user']." -p".Config::$config['pass']." ".Config::$config['dbase'].' > '.$filename;
-		shell_exec($command);
+		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".Config::$config['dbase'].' > '.$filename;
+      $this->Dbase->CreateLogEntry($command, 'info');
+      shell_exec($command);
 		$zip = new ZipArchive();
 		$zip->open($zipName, ZipArchive::CREATE);
 		$zip->addFile($filename, basename($filename));
@@ -649,6 +652,7 @@ class Uzp extends DBase{
          <li><a href="?page=dump">Backup database</a></li>
          <li><a href="?page=view">View database data</a></li>
          <li><a href="?page=db_checks">Run DB Checks</a></li>
+         <li><a href="?page=update_lab_data">Update Lab Databases</a></li>
          <!--li><a href="?page=step13">Eppendorf / DNA Extract -> Archive (13)</a></li-->
       </ul>
    </div>
@@ -2722,6 +2726,108 @@ class Uzp extends DBase{
       $samples = $this->Dbase->ExecuteQuery($samplesQ);
       if($samples == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       die(json_encode(array('error' => false, 'data' => $samples)));
+   }
+
+   /**
+    * Creates a home page for updating the lab databases
+    */
+   private function updateLabDBHome(){
+      $allDatabases = array(
+         array('id' => 'kemri', 'name' => 'KEMRI Lab Database'),
+         array('id' => 'uon', 'name' => 'UoN Lab Database'),
+         array('id' => 'postmoterm', 'name' => 'Postmoterm Lab Database'),
+         array('id' => 'pm-serum', 'name' => 'PM-Serum Lab Database'),
+         array('id' => 'pm-edta', 'name' => 'PM-EDTA Lab Database')
+      );
+?>
+<script type="text/javascript" src="js/uzp_lab.js"></script>
+<link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH?>azizi-shared-libs/customMessageBox/mssg_box.css" />
+<link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxdata.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+<script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH?>jqwidgets/jqwidgets/jqxfileupload.js"></script>
+
+<div id="batch_upload">
+   <h3 class="center" id="home_title">Database Backup to the AZIZI database</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div id="info">
+      Use the placeholder below to upload a backup of a lab database
+      <ol>
+         <li><b>CAUTION: TAKE CARE WHEN UPLOADING BACKUP DATABASES.</b></li>
+         <li><b>SELECT THE CORRECT DATABASE TO IMPORT THE BACKUP FILE. THIS WILL DELETE THE PREVIOUS DATABASES.</b></li>
+      </ol>
+   </div>
+   <div id="upload"></div>
+   <div id="details">
+      <div class='control-group'>
+         <label class='control-label' for='database_id'>Database</label>
+         <div id="database_pl"></div>
+      </div>
+   </div>
+</div>
+<div id="notification_box"><div></div></div>
+
+<script type="text/javascript">
+   $('#whoisme .back').html('<a href=\'?page=farm_animals\'>Back</a>');       //back link
+   var uzp = new Uzp();
+   uzp.allDatabases = <?php echo json_encode($allDatabases, true); ?>;
+   uzp.initiateBackupUpload();
+</script>
+<?php
+   }
+
+   private function saveUploadedBackups(){
+      $this->Dbase->CreateLogEntry('Processing a database backup...', 'info');
+      // if we dont have the event and person who did it reject it
+      if($_POST['database'] === 0) die(json_encode(array('error' => true, 'mssg' => 'Please specify the person who carried out this event. The update has been cancelled')));
+      $databases = array(
+         'postmoterm' => Config::$pm_db_name,
+         'uon' => Config::$uon_db_name,
+         'kemri' => Config::$kemri_db_name,
+         'pm-edta' => Config::$pm_edta_db_name,
+         'pm-serum' => Config::$pm_serum_db_name
+      );
+
+      // save the file and process it
+      $uploaded = GeneralTasks::CustomSaveUploads('tmp/', 'file_2_upload', array('application/octet-stream'), true);
+      if(!is_array($uploaded)){
+         $this->Dbase->CreateLogEntry($uploaded, 'debug');
+         if(is_string($uploaded)) die(json_encode(array('error' => true, 'mssg' => $uploaded)));
+         else die(json_encode(array('error' => true, 'mssg' => 'No files were selected for upload.')));
+      }
+      $uploadedFile = $uploaded[0];
+      $currentDB = $databases[$_POST['database']];
+
+      // create a backup of the current database
+      $filename = 'current_backup_'.date('Ymd_H:i:s').'.sql';
+		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".$currentDB.' > '.$filename;
+      $this->Dbase->CreateLogEntry("Backup Database using: $command", 'info');
+      $out = shell_exec($command);
+      $this->Dbase->CreateLogEntry("Command output: $out", 'info');
+
+      // delete the current database and create a fresh one
+      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." -e \"drop database `$currentDB`\"";
+      $this->Dbase->CreateLogEntry("Delete database using: $command", 'info');
+      $out = shell_exec($command);
+      $this->Dbase->CreateLogEntry("Command output: $out", 'info');
+
+      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." -e \"create database `$currentDB`\"";
+      $this->Dbase->CreateLogEntry("Create database using: $command", 'info');
+      $out = shell_exec($command);
+      $this->Dbase->CreateLogEntry("Command output: $out", 'info');
+
+      // try and import the backed up database
+      $restoreCommand = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".$currentDB.' < '.$uploadedFile;
+      $this->Dbase->CreateLogEntry("Import backed up database using: $restoreCommand", 'info');
+      $out = shell_exec($restoreCommand);
+      $this->Dbase->CreateLogEntry("Command output: $out", 'info');
+
+      // delete the backup of the current database
+      unlink($filename);
+
+      die(json_encode(array('error' => false, 'mssg' => 'Successfully ran the upload command. Log in to ensure that the data is well backed up.')));
    }
 }
 ?>

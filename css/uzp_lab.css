@@ -81,3 +81,5 @@ input[type=text]{ height: 30px; }
   text-align: center;
   padding-top: 20px;
 }
+#batch_upload #upload{ float: left; margin: 5px; width: 35%; }
+#batch_upload #details{ margin: 5px; width: 60%; margin-left: 36%; min-height: 200px; }

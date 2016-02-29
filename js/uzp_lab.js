@@ -134,7 +134,7 @@ Uzp.prototype.saveReceivedSample = function(){
       $("#sequencingId").focus();
       return;
    }
-  
+
    if(uzp.fieldSampleRegex === undefined){
       //lets create the sample regex format
       var prefix = format.match(/^([a-z]+)/i);
@@ -2015,4 +2015,48 @@ Uzp.prototype.saveCampyColonies = function(){
          }
      }
   });
+};
+
+/**
+ * Initiate a backup upload feature for uploading of saved backups
+ *
+ * @returns {undefined}
+ */
+Uzp.prototype.initiateBackupUpload = function(){
+   // create the placeholder for uploading the images
+   $('#upload').jqxFileUpload({
+      browseTemplate: 'success', uploadTemplate: 'primary',  cancelTemplate: 'danger', width: 300, height: '150px', multipleFilesUpload: false,
+      uploadUrl: 'mod_ajax.php?page=update_lab_data&do=save', fileInputName: 'file_2_upload[]',
+      accept: '.sql'
+   });
+
+   $('#upload').on('uploadStart', function (event) {
+      // ensure that we have the events and performed by
+      var database = $('#database_id').val();
+      var data = '';
+      if(database === 0){
+         animals.showNotification('Please select the database for this upload.', 'error');
+         $('#upload').jqxFileUpload('cancelAll');
+         return;
+      }
+      data += '<input type="hidden" name="database" value="'+database+'" />';
+
+      $('form[action="mod_ajax.php?page=update_lab_data&do=save"]').
+         append(data);
+   });
+
+   // process the response from the server
+   $('#upload').on('uploadEnd', function (event) {
+      var args = event.args;
+      var fileName = args.file;
+      var response = JSON.parse(args.response);
+      var errorType = (response.error) ? 'error' : 'success';
+      console.log(response.mssg);
+      uzp.showNotification('<b>'+ fileName + '</b>: ' + response.mssg, errorType, false);
+   });
+
+   // populate the performed by field with the respective drop down
+   var settings = {name: 'database', id: 'database_id', data: uzp.allDatabases, initValue: 'Select One', required: 'true'};
+   var databaseCombo = Common.generateCombo(settings);
+   $('#database_pl').html(databaseCombo);
 };
