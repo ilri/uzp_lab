@@ -2778,6 +2778,9 @@ class Uzp extends DBase{
 <?php
    }
 
+   /**
+    * Restore uploaded backups
+    */
    private function saveUploadedBackups(){
       $this->Dbase->CreateLogEntry('Processing a database backup...', 'info');
       // if we dont have the event and person who did it reject it

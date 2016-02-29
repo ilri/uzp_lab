@@ -90,7 +90,7 @@ Uzp.prototype.biochemTestLogic = function() {
       $("#res3").append(uzp.createOptionList("res3_select", ["Purple butt", "Yellow butt"], ["purple_butt", "yellow_butt"]));
       $("#res4").show();
       $("#res4_label").html("Lysine Deamination");
-      $("#res4").append(uzp.createOptionList("res4_select", ["Red band", "Purple band"], ["red_band", "purple_band"]));
+      $("#res4").append(uzp.createOptionList("res4_select", ["Red band", "Purple band", "No Color Change"], ["red_band", "purple_band", "no_color_change"]));
    }
    if($("#testId").val() === "citrate") {
       /* Test 1: Growth
