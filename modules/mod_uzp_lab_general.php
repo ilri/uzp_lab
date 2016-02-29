@@ -264,7 +264,7 @@ class Uzp extends DBase{
 		$date = new DateTime();
 		$filename = "99hh_".Config::$config['site']."_".$date->format('Y-m-d_H-i-s').'.sql';
 		$zipName = $filename.".zip";
-		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".Config::$config['dbase'].' > '.$filename;
+		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p'".Config::$superConfig['pass']."' -h ".Config::$config['dbloc']." ".Config::$config['dbase'].' > '.$filename;
       $this->Dbase->CreateLogEntry($command, 'info');
       shell_exec($command);
 		$zip = new ZipArchive();
@@ -2805,24 +2805,24 @@ class Uzp extends DBase{
 
       // create a backup of the current database
       $filename = 'current_backup_'.date('Ymd_H:i:s').'.sql';
-		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".$currentDB.' > '.$filename;
+		$command = Config::$config['mysqldump']." -u ".Config::$superConfig['user']." -p'".Config::$superConfig['pass']."' -h ".Config::$config['dbloc']." ".$currentDB.' > '.$filename;
       $this->Dbase->CreateLogEntry("Backup Database using: $command", 'info');
       $out = shell_exec($command);
       $this->Dbase->CreateLogEntry("Command output: $out", 'info');
 
       // delete the current database and create a fresh one
-      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." -e \"drop database `$currentDB`\"";
+      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p'".Config::$superConfig['pass']."' -h ".Config::$config['dbloc']." -e \"drop database $currentDB\"";
       $this->Dbase->CreateLogEntry("Delete database using: $command", 'info');
       $out = shell_exec($command);
       $this->Dbase->CreateLogEntry("Command output: $out", 'info');
 
-      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." -e \"create database `$currentDB`\"";
+      $command = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p'".Config::$superConfig['pass']."' -h ".Config::$config['dbloc']." -e \"create database $currentDB\"";
       $this->Dbase->CreateLogEntry("Create database using: $command", 'info');
       $out = shell_exec($command);
       $this->Dbase->CreateLogEntry("Command output: $out", 'info');
 
       // try and import the backed up database
-      $restoreCommand = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p".Config::$superConfig['pass']." -h ".Config::$config['dbloc']." ".$currentDB.' < '.$uploadedFile;
+      $restoreCommand = Config::$config['mysql']." -u ".Config::$superConfig['user']." -p'".Config::$superConfig['pass']."' -h ".Config::$config['dbloc']." ".$currentDB.' < '.$uploadedFile;
       $this->Dbase->CreateLogEntry("Import backed up database using: $restoreCommand", 'info');
       $out = shell_exec($restoreCommand);
       $this->Dbase->CreateLogEntry("Command output: $out", 'info');
