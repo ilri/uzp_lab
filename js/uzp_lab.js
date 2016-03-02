@@ -349,7 +349,7 @@ Uzp.prototype.receiveSampleKeypress = function(event){
       }
       else if(uzp_lab.module === 'campy_step3') {
          if($("[name=sample]").is(":focus")) {
-            uzp.savePlate3();
+            uzp.saveBioChemPrep();
          }
          else {
             $(this).next().focus();
@@ -1408,7 +1408,7 @@ Uzp.prototype.saveBioChemPrep = function(){
       if(uzp.parentSample !== undefined && uzp.colonies.length !== 0){
          // lets save this association
          $.ajax({
-            type:"POST", url: "mod_ajax.php?page=step6&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
+            type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {plate: uzp.parentSample, colonies: uzp.colonies, cur_user: cur_user},
             success: function (data) {
                if(data.error === true){
                   uzp.showNotification(data.mssg, 'error');
@@ -1785,6 +1785,11 @@ Uzp.prototype.saveDnaArchiving = function(){
   });
 };
 
+/**
+ * This function will be re-used by different sub modules which are doing more or less the same thing
+ *
+ * @returns {undefined}
+ */
 Uzp.prototype.savePlate3 = function(){
    // get the sample format and the received sample
    var colony_format = $('[name=colony_format]').val(), plate_format = $('[name=plate_format]').val(), sample = $('[name=sample]').val().toUpperCase(), cur_user = $('#usersId').val(), curSampleType = undefined;

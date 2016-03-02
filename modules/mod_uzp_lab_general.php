@@ -642,7 +642,7 @@ class Uzp extends DBase{
          <li><a href="?page=step11.1">Plate 6 to MH Plate(11.1)</a></li>
          <li><a href="?page=step12">MH Plate to Eppendorf / DNA Extract (12)</a></li>
          <div><br /><b>Campylobacter Lab Modules</b></div>
-         <li><a href="?page=campy_step1">Receive Bootsocks/Faeces Pots</a></li>
+         <li><a href="?page=campy_step1">Receive Bootsocks/Faeces/Meat Pots</a></li>
          <li><a href="?page=campy_step2">Bootsocks/Pots to Falcon tubes</a></li>
          <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
          <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
@@ -2299,21 +2299,22 @@ class Uzp extends DBase{
 
 <!-- We are re-using the broth template. So no changing things a lot -->
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Loading broth from falcon tube to MCCDA plate</h3>
+   <h3 class="center" id="home_title">Loading broth from falcon tube to MCCDA plates</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="colony_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="BSR010959" /></div>
-      <div id="plate_format"><label style="float: left;">MCCDA format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00043" /></div>
+      <div id="colony_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
+      <div id="plate_format"><label style="float: left;">MCCDA format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVMS00043" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
          <input type="text" name="sample" />
+         <label>Scanned plates</label><div id="scanned_colonies" class="center"></div>
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
          </div>
       </div>
    </div>
-   <div class="received"><div class="saved">Linked samples appear here</div></div>
+   <div class="received"><div class="saved">Linked plates appear here</div></div>
 </div>
 <div id="notification_box"><div id="msg"></div></div>
 <script>
@@ -2321,7 +2322,7 @@ class Uzp extends DBase{
 
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
-   $("#jqxSubmitButton").on('click', uzp.savePlate3).jqxButton({ width: '150'});
+   $("#jqxSubmitButton").on('click', uzp.saveBioChemPrep).jqxButton({ width: '150'});
 
    uzp.prevSample = undefined;
    uzp.curSample = undefined;
@@ -2343,20 +2344,27 @@ class Uzp extends DBase{
       $checkQuery = 'select id from campy_bootsock_assoc where daughter_sample = :sample';
       $insertQuery = 'insert into campy_mccda_assoc(falcon_id, plate1_barcode, user) values(:bootsock_id, :plate1_barcode, :user)';
 
-      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['field_sample']));
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('sample' => $_POST['plate']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
       else if(count($result) == 0){
-         $this->Dbase->CreateLogEntry("The falcon sample '{$_POST['field_sample']}' is not in the database.", 'fatal');
-         die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['field_sample']}' is not in the database.")));
+         $this->Dbase->CreateLogEntry("The falcon sample '{$_POST['plate']}' is not in the database.", 'fatal');
+         die(json_encode(array('error' => true, 'mssg' => "The falcon sample '{$_POST['plate']}' is not in the database.")));
       }
 
-      // now add the association
-      $result = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'plate1_barcode' => $_POST['broth_sample'], 'user' => $_POST['cur_user']));
-      if($result == 1){
-         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
-         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      // now add the association(s)
+      $this->Dbase->StartTrans();
+      foreach($_POST['colonies'] as $colony){
+         $res = $this->Dbase->ExecuteQuery($insertQuery, array('bootsock_id' => $result[0]['id'], 'plate1_barcode' => $colony, 'user' => $_POST['cur_user']));
+         if($res == 1){
+            if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+            else{
+               $this->Dbase->RollBackTrans();
+               die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+            }
+         }
       }
-      else die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+      $this->Dbase->CommitTrans();
+      die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
    /**
