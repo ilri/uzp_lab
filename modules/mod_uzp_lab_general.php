@@ -156,6 +156,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3.1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaGrownColoniesHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaGrownColoniesSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step3.5'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyFalcon2CryoHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalcon2CryoSave();
@@ -163,6 +167,10 @@ class Uzp extends DBase{
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaGrowthHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaGrowthSave();
+      }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4.1'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColonies2CryoHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMicroaerobicColonies2CryoSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step5'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColoniesHome();
@@ -645,8 +653,10 @@ class Uzp extends DBase{
          <li><a href="?page=campy_step1">Receive Bootsocks/Faeces/Meat Pots</a></li>
          <li><a href="?page=campy_step2">Bootsocks/Pots to Falcon tubes</a></li>
          <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
+         <li><a href="?page=campy_step3.1">MCCDA Grown Colonies</a></li>
          <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
          <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
+         <li><a href="?page=campy_step4.1">Aerobic/Microaerobic plate to cryo vials</a></li>
          <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
          <div><br /><b>Miscellaneous</b></div>
          <li><a href="?page=dump">Backup database</a></li>
@@ -2365,6 +2375,84 @@ class Uzp extends DBase{
       }
       $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
+    * Creates a home page for adding grown colonies details
+    */
+   private function campyMccdaGrownColoniesHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="ast_result">
+   <h3 class="center" id="home_title">MCCDA Grown Colonies</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+      <div id="sample_div"><label style="float: left;">Sample barcode: </label>&nbsp;&nbsp;<input type="text" name="mccda_format" value="AVMS00012" /></div> <br />
+      <div class="center">
+         <div>
+            MCCDA Plate: <input type="text" name="sample" /><br /><br />
+            No of colonies: <input type="text" name="no_colonies" /><br />
+            Type of Dilution: <span>
+               Neat <input type="checkbox" name="dilution" value="neat" />
+               1:100 <input type="checkbox" name="dilution" value="1_100" />
+               1:10,000 <input type="checkbox" name="dilution" value="1_10000" />
+            </span>
+         </div>
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Recorded colonies appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.saveMccdaColonies).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Save the details of the grown colonies
+    */
+   private function campyMccdaGrownColoniesSave(){
+      // check whether the mccda plate is in the database
+      $checkQuery = 'select id from campy_mccda_assoc where plate1_barcode = :plate';
+      $updateQuery = 'update campy_mccda_assoc set growth_datetime = :growth_datetime, growth_user = :growth_user, growth_no_colonies = :growth_no_colonies, growth_dilution = :growth_dilution '
+            . 'where plate1_barcode = :plate';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['mccda']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['mccda']}' is not in the database.")));
+
+      // now add the association
+      $vals = array('growth_datetime' => date('Y-m-d H:i:s'), 'growth_user' => $_POST['cur_user'],
+         'growth_no_colonies' => $_POST['no_colonies'], 'growth_dilution' => $_POST['dilution'], 'plate' => $_POST['mccda']);
+      $res = $this->Dbase->ExecuteQuery($updateQuery, $vals);
+      if($res == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'The growth details have been saved succesfully.')));
    }
 
    /**
