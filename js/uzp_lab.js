@@ -379,6 +379,14 @@ Uzp.prototype.receiveSampleKeypress = function(event){
             $(this).next().focus();
          }
       }
+      else if(uzp_lab.module === 'campy_step4.1') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.savePlate3();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
       else if(uzp_lab.module === 'campy_step5') {
          if($("[name=sample]").is(":focus")) {
             uzp.saveCampyColonies();

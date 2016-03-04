@@ -165,8 +165,8 @@ class Uzp extends DBase{
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyFalcon2CryoSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4'){
-         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccdaGrowthHome();
-         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccdaGrowthSave();
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMccda2BloodPlatesHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMccda2BloodPlatesSave();
       }
       elseif(OPTIONS_REQUESTED_MODULE == 'campy_step4.1'){
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColonies2CryoHome();
@@ -303,10 +303,10 @@ class Uzp extends DBase{
          "biochemical_test_results" => array("column" => "media_id", "parent" => "biochemical_test", "parent_column" => "media", "parent_id" => "id"),
          "broth_assoc" => array("column" => "field_sample_id", "parent" => "received_samples", "parent_column" => "sample", "parent_id" => "id"),
          "campy_bootsock_assoc" => array("column" => "bootsock_id", "parent" => "campy_received_bootsocks", "parent_column" => "sample", "parent_id" => "id"),
-         "campy_colonies" => array("column" => "colony", "parent" => "campy_mccda_growth", "parent_column" => "am_plate", "parent_id" => "am_plate"),
+         "campy_colonies" => array("column" => "colony", "parent" => "campy_mccda_blood_plates", "parent_column" => "am_plate", "parent_id" => "am_plate"),
          "campy_cryovials" => array("column" => "falcon_id", "parent" => "campy_bootsock_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
          "campy_mccda_assoc" => array("column" => "falcon_id", "parent" => "campy_bootsock_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
-         "campy_mccda_growth" => array("column" => "mccda_plate_id", "parent" => "campy_mccda_assoc", "parent_column" => "plate1_barcode", "parent_id" => "id"),
+         "campy_mccda_blood_plates" => array("column" => "mccda_plate_id", "parent" => "campy_mccda_assoc", "parent_column" => "plate1_barcode", "parent_id" => "id"),
          "colonies" => array("column" => "mcconky_plate_id", "parent" => "mcconky_assoc", "parent_column" => "plate1_barcode", "parent_id" => "id"),
          "dna_eppendorfs" => array("column" => "mh6_id", "parent" => "mh6_assoc", "parent_column" => "mh", "parent_id" => "id"),
          "mcconky_assoc" => array("column" => "broth_sample_id", "parent" => "broth_assoc", "parent_column" => "broth_sample", "parent_id" => "id"),
@@ -606,7 +606,7 @@ class Uzp extends DBase{
          $id = $_REQUEST['id'];
          $query = "select a.am_plate campy_mccda_growth_am_plate, a.datetime_saved campy_mccda_growth_datetime_saved, a.user campy_mccda_growth_user,"
                . "b.colony campy_colonies_colony, b.box campy_colonies_box, b.position_in_box campy_colonies_position_in_box, b.user campy_colonies_user"
-               . " from campy_mccda_growth as a"
+               . " from campy_mccda_blood_plates as a"
                . " left join campy_colonies as b on a.am_plate = b.colony"
                . " where a.mccda_plate_id = :id";
          $result = $this->Dbase->ExecuteQuery($query, array("id" => $id));
@@ -652,9 +652,9 @@ class Uzp extends DBase{
          <div><br /><b>Campylobacter Lab Modules</b></div>
          <li><a href="?page=campy_step1">Receive Bootsocks/Faeces/Meat Pots</a></li>
          <li><a href="?page=campy_step2">Bootsocks/Pots to Falcon tubes</a></li>
+         <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
          <li><a href="?page=campy_step3">Falcon tube to MCCDA plate</a></li>
          <li><a href="?page=campy_step3.1">MCCDA Grown Colonies</a></li>
-         <li><a href="?page=campy_step3.5">Falcon tube to cryo vials</a></li>
          <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
          <li><a href="?page=campy_step4.1">Aerobic/Microaerobic plate to cryo vials</a></li>
          <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
@@ -1655,8 +1655,8 @@ class Uzp extends DBase{
     */
    private function usersCombo(){
       if(Config::$config['site'] == "KEMRI") {
-         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi', 'Hannah Waruguru', 'Edna Kerubo');
-         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi', 'Hannah_Waruguru', 'Edna_Kerubo');
+         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi', 'Hannah Waruguru', 'Edna Kerubo', 'Elizabeth Mutuku', 'Kevin Kariuki');
+         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi', 'Hannah_Waruguru', 'Edna_Kerubo', 'Liz_Mutuku', 'Kevin_Kariuki');
       }
       else if(Config::$config['site'] == 'UoN') {
          $userVals = array('John Kiiru', 'Johnstone Masinde', 'Lucy Gitonga', 'Beatrice Wandia', 'Caroline Kimunye');
@@ -2309,7 +2309,7 @@ class Uzp extends DBase{
 
 <!-- We are re-using the broth template. So no changing things a lot -->
 <div id="broth_enrichment">
-   <h3 class="center" id="home_title">Loading broth from falcon tube to MCCDA plates</h3>
+   <h3 class="center" id="home_title">Loading MCCDA plates</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="colony_format"><label style="float: left;">Falcon tube format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="BSR010959" /></div>
@@ -2456,9 +2456,84 @@ class Uzp extends DBase{
    }
 
    /**
+    * Create the association homepage for the MCCDA to Cryo
+    */
+   private function campyMicroaerobicColonies2CryoHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<!-- So yes its a different module, but the functionality is just the same. I will not bother changing the HTML placeholders -->
+<div id="broth_enrichment">
+   <h3 class="center" id="home_title">Microaerobic to cryo vials</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="sample_format"><label style="float: left;">Plate format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVMS00012" /></div>
+      <div id="broth_format"><label style="float: left;">Cryo vial format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ00012" /></div>
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
+
+      <div class="center">
+         <input type="text" name="sample" />
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Linked plate -> vials appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.savePlate3).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   /**
+    * Saves the MCCDA cryo vials association
+    */
+   private function campyMicroaerobicColonies2CryoSave(){
+      /**
+       * check whether the plate is in the database
+       * if it is in the database, save the plate and its associated colonies
+       */
+      $checkQuery = 'select id from campy_mccda_blood_plates where am_plate = :plate';
+      $insertQuery = 'insert into campy_blood_plates_cryovials(blood_plate, cryovial, datetime_added, added_by) values(:blood_plate_id, :cryovial, :datetime, :user)';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['field_sample']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['field_sample']}' is not in the database.")));
+
+      // now add the association
+      $vals = array('blood_plate_id' => $result[0]['id'], 'cryovial' => $_POST['broth_sample'], 'datetime'  => date('Y-m-d H:i:s'), 'user' => $_POST['cur_user']);
+      $res = $this->Dbase->ExecuteQuery($insertQuery, $vals);
+      if($res == 1){
+         $this->Dbase->RollBackTrans();
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
+   }
+
+   /**
     * Create a home page for loading the aerobic/micro-aerobic plates with the broth from the MCCDA plate
     */
-   private function campyMccdaGrowthHome(){
+   private function campyMccda2BloodPlatesHome(){
       $userCombo = $this->usersCombo();
 ?>
     <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
@@ -2471,22 +2546,22 @@ class Uzp extends DBase{
 
     <!-- Using the colonies page for this stage -->
 <div id="colonies">
-   <h3 class="center" id="home_title">MCCDA Plate -> Aerobic and Micro-aerobic Plates</h3>
+   <h3 class="center" id="home_title">MCCDA Plate -> Blood Plates</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
       <div id="plate_format"><label style="float: left;">MCCDA Plate: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVMS00045" /></div>
-      <div id="media_format"><label style="float: left;">Aerobic Plates format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ64156" /></div>
+      <div id="media_format"><label style="float: left;">Blood Plates format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ64156" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
          <input type="text" name="sample" />
-         <label>Scanned colonies</label><div id="scanned_colonies" class="center"></div>
+         <label>Scanned Plates</label><div id="scanned_colonies" class="center"></div>
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
          </div>
       </div>
    </div>
-   <div class="received"><div class="saved">Aerobic and Micro-aerobic plates appear here</div></div>
+   <div class="received"><div class="saved">Blood plates appear here</div></div>
 </div>
 <div id="notification_box"><div id="msg"></div></div>
 <script>
@@ -2510,13 +2585,13 @@ class Uzp extends DBase{
    /**
     * Saves the association between the colonies which grew from the mccda plate and the aerobi/microbic plate
     */
-   private function campyMccdaGrowthSave(){
+   private function campyMccda2BloodPlatesSave(){
       /**
        * check whether the plate is in the database
        * if it is in the database, save the plate and its associated colonies
        */
       $checkQuery = 'select id from campy_mccda_assoc where plate1_barcode = :plate';
-      $insertQuery = 'insert into campy_mccda_growth(mccda_plate_id, am_plate, user) values(:mccda_plate_id, :am_plate, :user)';
+      $insertQuery = 'insert into campy_mccda_blood_plates(mccda_plate_id, am_plate, user) values(:mccda_plate_id, :am_plate, :user)';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
