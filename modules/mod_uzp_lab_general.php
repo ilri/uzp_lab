@@ -2479,12 +2479,13 @@ class Uzp extends DBase{
    <h3 class="center" id="home_title">Microaerobic to cryo vials</h3>
    <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
    <div class="scan">
-      <div id="sample_format"><label style="float: left;">Plate format: </label>&nbsp;&nbsp;<input type="text" name="colony_format" class="input-small" value="AVMS00012" /></div>
-      <div id="broth_format"><label style="float: left;">Cryo vial format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="AVAQ00012" /></div>
+      <div id="sample_format"><label style="float: left;">Plate format: </label>&nbsp;&nbsp;<input type="text" name="plate_format" class="input-small" value="IS000012" /></div>
+      <div id="broth_format"><label style="float: left;">Cryo vial format: </label>&nbsp;&nbsp;<input type="text" name="media_format" class="input-small" value="AVAQ00012" /></div>
       <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div> <br />
 
       <div class="center">
          <input type="text" name="sample" />
+         <label>Scanned Cryo Vials</label><div id="scanned_colonies" class="center"></div>
          <div>
             <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
          </div>
@@ -2498,7 +2499,7 @@ class Uzp extends DBase{
 
    $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
    $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
-   $("#jqxSubmitButton").on('click', uzp.savePlate3).jqxButton({ width: '150'});
+   $("#jqxSubmitButton").on('click', uzp.savePlate3to45).jqxButton({ width: '150'});
 
    uzp.prevSample = undefined;
    uzp.curSample = undefined;
@@ -2520,18 +2521,21 @@ class Uzp extends DBase{
       $checkQuery = 'select id from campy_mccda_blood_plates where am_plate = :plate';
       $insertQuery = 'insert into campy_blood_plates_cryovials(blood_plate, cryovial, datetime_added, added_by) values(:blood_plate_id, :cryovial, :datetime, :user)';
 
-      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['field_sample']));
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('plate' => $_POST['plate']));
       if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
-      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['field_sample']}' is not in the database.")));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The plate '{$_POST['plate']}' is not in the database.")));
 
       // now add the association
-      $vals = array('blood_plate_id' => $result[0]['id'], 'cryovial' => $_POST['broth_sample'], 'datetime'  => date('Y-m-d H:i:s'), 'user' => $_POST['cur_user']);
-      $res = $this->Dbase->ExecuteQuery($insertQuery, $vals);
-      if($res == 1){
-         $this->Dbase->RollBackTrans();
-         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
-         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      foreach($_POST['colonies'] as $colony){
+         $vals = array('blood_plate_id' => $result[0]['id'], 'cryovial' => $colony, 'datetime'  => date('Y-m-d H:i:s'), 'user' => $_POST['cur_user']);
+         $res = $this->Dbase->ExecuteQuery($insertQuery, $vals);
+         if($res == 1){
+            $this->Dbase->RollBackTrans();
+            if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+            else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+         }
       }
+      $this->Dbase->CommitTrans();
       die(json_encode(array('error' => false, 'mssg' => 'The association has been saved succesfully.')));
    }
 
