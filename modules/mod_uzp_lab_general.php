@@ -2225,7 +2225,7 @@ class Uzp extends DBase{
     */
    private function campyFalcon2CryoHome(){
       $userCombo = $this->usersCombo();
-      $boxQuery = 'select position_in_box, cryovial from campy_cryovials order by position_in_box';
+      $boxQuery = 'select position_in_box, cryovial from campy_cryovials where box = (select box from campy_cryovials order by id desc limit 1) order by position_in_box';
       $res = $this->Dbase->ExecuteQuery($boxQuery, NULL, PDO::FETCH_KEY_PAIR);
       if($res == 1){
          $this->homePage($this->Dbase->lastError);
@@ -2625,7 +2625,7 @@ class Uzp extends DBase{
     */
    private function campyMicroaerobicColoniesHome(){
       $userCombo = $this->usersCombo();
-      $boxQuery = 'select position_in_box, colony from campy_colonies order by position_in_box';
+      $boxQuery = 'select position_in_box, colony from campy_colonies where box = (select box from campy_colonies order by id desc limit 1) order by position_in_box';
       $colonies = $this->Dbase->ExecuteQuery($boxQuery, NULL, PDO::FETCH_KEY_PAIR);
       if($colonies == 1){
          $this->homePage($this->Dbase->lastError);
