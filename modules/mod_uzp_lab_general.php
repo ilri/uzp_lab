@@ -176,6 +176,10 @@ class Uzp extends DBase{
          if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyMicroaerobicColoniesHome();
          elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyMicroaerobicColoniesSave();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'campy_pcr'){
+         if(OPTIONS_REQUESTED_SUB_MODULE == '') $this->campyPCRResultsHome();
+         elseif(OPTIONS_REQUESTED_SUB_MODULE == 'save') $this->campyPCRResultsSave();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'logout') {
          $this->LogOutCurrentUser();
       }
@@ -658,6 +662,7 @@ class Uzp extends DBase{
          <li><a href="?page=campy_step4">MCCDA plate to Aerobic/Microaerobic plate</a></li>
          <li><a href="?page=campy_step4.1">Aerobic/Microaerobic plate to cryo vials</a></li>
          <li><a href="?page=campy_step5">Microaerobic colonies freezing</a></li>
+         <li><a href="?page=campy_pcr">PCR Results</a></li>
          <div><br /><b>Miscellaneous</b></div>
          <li><a href="?page=dump">Backup database</a></li>
          <li><a href="?page=view">View database data</a></li>
@@ -2402,9 +2407,9 @@ class Uzp extends DBase{
             MCCDA Plate: <input type="text" name="sample" /><br /><br />
             No of colonies: <input type="text" name="no_colonies" /><br />
             Type of Dilution: <span>
-               Neat <input type="checkbox" name="dilution" value="neat" />
-               1:100 <input type="checkbox" name="dilution" value="1_100" />
-               1:10,000 <input type="checkbox" name="dilution" value="1_10000" />
+               Neat <input type="radio" name="dilution" value="neat" />
+               1:100 <input type="radio" name="dilution" value="1_100" />
+               1:10,000 <input type="radio" name="dilution" value="1_10000" />
             </span>
          </div>
          <div>
@@ -3002,6 +3007,79 @@ class Uzp extends DBase{
       unlink($filename);
 
       die(json_encode(array('error' => false, 'mssg' => 'Successfully ran the upload command. Log in to ensure that the data is well backed up.')));
+   }
+
+   /**
+    * Creates a home page for saving associated PCR results
+    */
+   private function campyPCRResultsHome(){
+      $userCombo = $this->usersCombo();
+?>
+    <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="js/uzp_lab.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>jqwidgets/jqwidgets/jqxnotification.js"></script>
+
+<div id="ast_result">
+   <h3 class="center" id="home_title">Campy Colonies PCR Results</h3>
+   <a href="./?page=" style="float: left; margin-bottom: 10px;">Back</a> <br />
+   <div class="scan">
+      <div id="current_user"><label style="float: left;">Current User: </label>&nbsp;&nbsp;<?php echo $userCombo; ?></div>
+      <div id="sample_div"><label style="float: left;">Sample barcode: </label>&nbsp;&nbsp;<input type="text" name="pcr_format" value="ALQ000012" /></div> <br />
+      <div class="center">
+         <div>
+            Colonies Vial: <input type="text" name="sample" /><br /><br />
+            PCR Results: <span>
+               Positive <input type="radio" name="pcr_res" value="positive" />
+               Negative <input type="radio" name="pcr_res" value="negative" />
+            </span>
+         </div>
+         <div>
+            <input style='margin-top: 5px;' type="submit" value="Submit" id='jqxSubmitButton' />
+         </div>
+      </div>
+   </div>
+   <div class="received"><div class="saved">Recorded PCR Results appear here</div></div>
+</div>
+<div id="notification_box"><div id="msg"></div></div>
+<script>
+   var uzp = new Uzp();
+
+   $('#whoisme .back').html('<a href=\'?page=home\'>Back</a>');
+   $("[name=sample]").focus().jqxInput({placeHolder: "Scan a sample", width: 200, minLength: 1 });
+   $("#jqxSubmitButton").on('click', uzp.savePCRResults).jqxButton({ width: '150'});
+
+   uzp.prevSample = undefined;
+   uzp.curSample = undefined;
+   uzp.curSampleType = undefined;
+   uzp.prevSampleType = undefined;
+   $(document).keypress(uzp.receiveSampleKeypress);
+</script>
+<?php
+   }
+
+   private function campyPCRResultsSave(){
+      // check whether the colony is in the database
+      $checkQuery = 'select id from campy_colonies where colony = :colony and pcr_result is null';
+      $updateQuery = 'update campy_colonies set pcr_result = :pcr_result, pcr_datetime_added = :datetime_added, pcr_added_by = :added_by '
+            . 'where colony = :colony';
+
+      $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['colony']));
+      if($result == 1) die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      else if(count($result) == 0) die(json_encode(array('error' => true, 'mssg' => "The colony '{$_POST['colony']}' is not in the database.")));
+
+      // now add the association
+      $vals = array('datetime_added' => date('Y-m-d H:i:s'), 'added_by' => $_POST['cur_user'],
+         'pcr_result' => $_POST['pcr_res'], 'colony' => $_POST['colony']);
+      $res = $this->Dbase->ExecuteQuery($updateQuery, $vals);
+      if($res == 1){
+         if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
+         else die(json_encode(array('error' => true, 'mssg' => $this->Dbase->lastError)));
+      }
+      die(json_encode(array('error' => false, 'mssg' => 'The PCR results have been saved succesfully.')));
    }
 }
 ?>

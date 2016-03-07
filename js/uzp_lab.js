@@ -395,6 +395,14 @@ Uzp.prototype.receiveSampleKeypress = function(event){
             $(this).next().focus();
          }
       }
+      else if(uzp_lab.module === 'campy_pcr') {
+         if($("[name=sample]").is(":focus")) {
+            uzp.savePCRResults();
+         }
+         else {
+            $(this).next().focus();
+         }
+      }
 	}
 };
 
@@ -1973,7 +1981,7 @@ Uzp.prototype.saveFalconVials = function(){
  * @returns {undefined}
  */
 Uzp.prototype.saveMccdaColonies = function(){
-   var sample = $('[name=sample]').val(), dilution = $('[name=dilution]').val(), cur_user = $('#usersId').val();
+   var sample = $('[name=sample]').val(), dilution = $('[name=dilution]:checked').val(), cur_user = $('#usersId').val();
    var mccda_format = $('[name=mccda_format]').val(), no_colonies = $('[name=no_colonies]').val();
 
    // ensure that we have the current user
@@ -1998,7 +2006,7 @@ Uzp.prototype.saveMccdaColonies = function(){
    }
 
    // ensure that we have a dilution
-   if(dilution === ''){
+   if(dilution === '' || dilution === undefined){
       uzp.showNotification('Please select a dilution that was used with this plate.', 'error');
       $("[name=dilution]").focus();
       return;
@@ -2026,7 +2034,6 @@ Uzp.prototype.saveMccdaColonies = function(){
          else{
             // we have saved the plate well... lets prepare for the next plate
             $("[name=sample]").focus().val('');
-            $('[name=dilution]').val('');
             $('[name=no_colonies]').val('');
             var currentdate = new Date();
             var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
@@ -2101,6 +2108,66 @@ Uzp.prototype.saveCampyColonies = function(){
             var suffix = sample.match(/([0-9]+)$/i);
             $('#plate_layout .pos_'+cur_pos).html(suffix[0] +' ('+ cur_pos +')').css({'background-color': '#009D59'});
             $('[name=colony_pos]').val(parseInt(cur_pos)+1);
+            uzp.showNotification(data.mssg, 'success');
+         }
+     }
+  });
+};
+
+/**
+ * Initiates the process of saving PCR results
+ * @returns {undefined}
+ */
+Uzp.prototype.savePCRResults = function(){
+   var sample = $('[name=sample]').val(), pcr_res = $('[name=pcr_res]:checked').val(), cur_user = $('#usersId').val();
+   var pcr_format = $('[name=pcr_format]').val();
+
+   // ensure that we have the current user
+   if(cur_user === "0"){
+      uzp.showNotification('Please select the current user.', 'error');
+      $("#usersId").focus();
+      return;
+   }
+
+   // ensure that we have a mccda plate entered
+   if(sample === ''){
+      uzp.showNotification('Please scan/enter the MCCDA plate.', 'error');
+      $("[name=sample]").focus();
+      return;
+   }
+
+   // ensure that we have a pcr result
+   if(pcr_res === '' || pcr_res === undefined){
+      uzp.showNotification('Please select the result of the PCR test.', 'error');
+      $("[name=pcr_res]").focus();
+      return;
+   }
+
+   //lets validate the aliquot format
+   var m_regex = uzp.createSampleRegex(pcr_format);
+
+   // check whether we are dealing with the field or broth sample
+   if(m_regex.test(sample) !== true){
+      uzp.showNotification('Error: The entered PCR colony does not match the PCR format', 'error');
+      $("[name=sample]").val('').focus();
+      return;
+   }
+
+   // we are all set to save this association
+   $.ajax({
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony: sample, cur_user: cur_user, pcr_res: pcr_res},
+      success: function (data) {
+         if(data.error === true){
+            uzp.showNotification(data.mssg, 'error');
+            $("[name=sample]").focus().val('');
+            return;
+         }
+         else{
+            // we have saved the plate well... lets prepare for the next plate
+            $("[name=sample]").focus().val('');
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+            $('.received .saved').prepend(datetime +': '+ sample +'=>'+ pcr_res +"<br />");
             uzp.showNotification(data.mssg, 'success');
          }
      }
