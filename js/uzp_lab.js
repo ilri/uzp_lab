@@ -2221,7 +2221,7 @@ Uzp.prototype.saveCampyColonies = function(){
  */
 Uzp.prototype.savePCRResults = function(){
    var sample = $('[name=sample]').val(), pcr_res = $('[name=pcr_res]:checked').val(), cur_user = $('#usersId').val();
-   var pcr_format = $('[name=pcr_format]').val();
+   var pcr_format = $('[name=pcr_format]').val(), pcr_type = $('[name=pcr_type]').val();
 
    // ensure that we have the current user
    if(cur_user === "0"){
@@ -2234,6 +2234,13 @@ Uzp.prototype.savePCRResults = function(){
    if(sample === ''){
       uzp.showNotification('Please scan/enter the MCCDA plate.', 'error');
       $("[name=sample]").focus();
+      return;
+   }
+
+   // ensure that we have a pcr type
+   if(pcr_type === '' || pcr_type === undefined){
+      uzp.showNotification('Please enter the PCR type that was conducted.', 'error');
+      $("[name=pcr_type]").focus();
       return;
    }
 
@@ -2256,7 +2263,7 @@ Uzp.prototype.savePCRResults = function(){
 
    // we are all set to save this association
    $.ajax({
-      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony: sample, cur_user: cur_user, pcr_res: pcr_res},
+      type:"POST", url: "mod_ajax.php?page="+ uzp_lab.module +"&do=save", async: false, dataType:'json', data: {colony: sample, cur_user: cur_user, pcr_type: pcr_type, pcr_res: pcr_res},
       success: function (data) {
          if(data.error === true){
             uzp.showNotification(data.mssg, 'error');

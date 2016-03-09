@@ -3036,6 +3036,7 @@ class Uzp extends DBase{
       <div class="center">
          <div>
             Colonies Vial: <input type="text" name="sample" /><br /><br />
+            PCR Type: <input type="text" name="pcr_type" /><br /><br />
             PCR Results: <span>
                Positive <input type="radio" name="pcr_res" value="positive" />
                Negative <input type="radio" name="pcr_res" value="negative" />
@@ -3068,7 +3069,7 @@ class Uzp extends DBase{
    private function campyPCRResultsSave(){
       // check whether the colony is in the database
       $checkQuery = 'select id from campy_colonies where colony = :colony and pcr_result is null';
-      $updateQuery = 'update campy_colonies set pcr_result = :pcr_result, pcr_datetime_added = :datetime_added, pcr_added_by = :added_by '
+      $updateQuery = 'update campy_colonies set pcr_tye = :pcr_type, pcr_result = :pcr_result, pcr_datetime_added = :datetime_added, pcr_added_by = :added_by '
             . 'where colony = :colony';
 
       $result = $this->Dbase->ExecuteQuery($checkQuery, array('colony' => $_POST['colony']));
@@ -3077,7 +3078,7 @@ class Uzp extends DBase{
 
       // now add the association
       $vals = array('datetime_added' => date('Y-m-d H:i:s'), 'added_by' => $_POST['cur_user'],
-         'pcr_result' => $_POST['pcr_res'], 'colony' => $_POST['colony']);
+         'pcr_type' => $_POST['pcr_type'], 'pcr_result' => $_POST['pcr_res'], 'colony' => $_POST['colony']);
       $res = $this->Dbase->ExecuteQuery($updateQuery, $vals);
       if($res == 1){
          if($this->Dbase->lastErrorCodes[1] == 1062) die(json_encode(array('error' => true, 'mssg' => 'Duplicate entry for the current association')));
