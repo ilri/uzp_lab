@@ -1660,8 +1660,8 @@ class Uzp extends DBase{
     */
    private function usersCombo(){
       if(Config::$config['site'] == "KEMRI") {
-         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi', 'Hannah Waruguru', 'Edna Kerubo', 'Elizabeth Mutuku', 'Kevin Kariuki');
-         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi', 'Hannah_Waruguru', 'Edna_Kerubo', 'Liz_Mutuku', 'Kevin_Kariuki');
+         $userVals = array('John Kiiru', 'Tom Ouko', 'Hannah Njeri', 'Sam Njoroge', 'Benson Kiiru', 'Purity Karimi', 'Hannah Waruguru', 'Edna Kerubo', 'Elizabeth Mutuku', 'Kevin Kariuki', 'Agathe Baras');
+         $userIds = array('kiiru_john', 'Tom_Ouko', 'Hannah_Njeri', 'Sam_Njoroge', 'Benson_Kiiru', 'Purity_Karimi', 'Hannah_Waruguru', 'Edna_Kerubo', 'Liz_Mutuku', 'Kevin_Kariuki', 'Agathe_Baras');
       }
       else if(Config::$config['site'] == 'UoN') {
          $userVals = array('John Kiiru', 'Johnstone Masinde', 'Lucy Gitonga', 'Beatrice Wandia', 'Caroline Kimunye');
